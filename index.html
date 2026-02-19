@@ -3,101 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>NOMD TACTICAL v12.0 | GOLD</title>
+    <title>NOMD TACTICAL v12.1 | COMPLETE</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
-        
-        :root { 
-            --g: #00ff41; --r: #ff3131; --a: #ffb400; --b: #00d4ff; 
-            --bg: #050805; --card-bg: #0d120d; --border: #1b261b;
-        }
-
+        :root { --g: #00ff41; --r: #ff3131; --a: #ffb400; --b: #00d4ff; --bg: #050805; --card-bg: #0d120d; --border: #1b261b; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Share Tech Mono', monospace; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--g); height: 100vh; overflow: hidden; display: flex; flex-direction: column; border: 2px solid #111; }
+        #strobe { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; pointer-events: none; opacity: 0; background: #fff; }
         
-        body { 
-            background: var(--bg); color: var(--g); height: 100vh; 
-            overflow: hidden; display: flex; flex-direction: column;
-            border: 2px solid #111;
-        }
-
-        /* HEADER PROFESIONAL */
-        .ui-header { 
-            padding: 15px; border-bottom: 2px solid var(--g); background: linear-gradient(180deg, #000 0%, #0a0f0a 100%);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.8);
-        }
+        /* HEADER */
+        .ui-header { padding: 15px; border-bottom: 2px solid var(--g); background: linear-gradient(180deg, #000 0%, #0a0f0a 100%); box-shadow: 0 5px 15px rgba(0,0,0,0.8); z-index: 100; }
         .status-bar { display: flex; justify-content: space-between; font-size: 10px; opacity: 0.8; margin-bottom: 8px; }
-        #gps-display { 
-            background: #000; border: 1px solid var(--border); padding: 8px; 
-            text-align: center; font-size: 11px; color: var(--g);
-            box-shadow: inset 0 0 10px rgba(0,255,65,0.1);
-        }
+        #gps-display { background: #000; border: 1px solid var(--border); padding: 8px; text-align: center; font-size: 11px; color: var(--g); box-shadow: inset 0 0 10px rgba(0,255,65,0.1); }
 
-        /* GRID PRINCIPAL OPTIMIZADO */
-        .main-grid { 
-            display: grid; grid-template-columns: 1fr 1fr; gap: 12px; 
-            padding: 20px; overflow-y: auto; flex-grow: 1;
-            background: radial-gradient(circle at center, #0a110a 0%, #050805 100%);
-        }
-        
-        .t-card { 
-            background: var(--card-bg); border: 1px solid var(--border); 
-            display: flex; flex-direction: column; align-items: center; justify-content: center; 
-            height: 120px; border-radius: 4px; position: relative;
-            box-shadow: 0 4px 0 #000; transition: all 0.1s;
-        }
+        /* GRID PRINCIPAL */
+        .main-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 20px; overflow-y: auto; flex-grow: 1; background: radial-gradient(circle at center, #0a110a 0%, #050805 100%); }
+        .t-card { background: var(--card-bg); border: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; justify-content: center; height: 110px; border-radius: 4px; box-shadow: 0 4px 0 #000; transition: all 0.1s; cursor: pointer; }
         .t-card:active { transform: translateY(2px); box-shadow: 0 1px 0 #000; background: var(--g); }
         .t-card:active span, .t-card:active .icon { color: #000; }
-        .t-card .icon { font-size: 28px; margin-bottom: 10px; filter: drop-shadow(0 0 5px var(--g)); }
+        .t-card .icon { font-size: 26px; margin-bottom: 10px; filter: drop-shadow(0 0 5px var(--g)); }
         .t-card span { font-size: 11px; font-weight: bold; color: #fff; letter-spacing: 1px; }
 
-        /* MODALES */
-        .modal { 
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: var(--bg); z-index: 3000; flex-direction: column;
-            animation: fadeIn 0.2s ease-out;
-        }
-        @keyframes fadeIn { from { opacity: 0; transform: scale(1.05); } to { opacity: 1; transform: scale(1); } }
-        
-        .m-head { 
-            padding: 20px; border-bottom: 1px solid var(--g); 
-            display: flex; justify-content: space-between; align-items: center;
-            background: #000;
-        }
+        /* MODALES Y CONTENIDO */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 3000; flex-direction: column; animation: fadeIn 0.2s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(1.02); } to { opacity: 1; transform: scale(1); } }
+        .m-head { padding: 20px; border-bottom: 1px solid var(--g); display: flex; justify-content: space-between; align-items: center; background: #000; }
         .m-content { flex-grow: 1; overflow-y: auto; padding: 20px; padding-bottom: 120px; }
-        .btn-close { background: var(--r); color: #000; border: none; padding: 8px 15px; font-weight: bold; cursor: pointer; }
-
-        /* LECTURA Y HERRAMIENTAS */
-        .lib-card { 
-            background: #080b08; border: 1px solid #1a1f1a; padding: 15px; 
-            margin-bottom: 15px; border-left: 4px solid var(--g);
-        }
-        .diag-box { width: 100%; height: 140px; border: 1px solid #1a1f1a; margin: 15px 0; background: #000; display: flex; align-items: center; justify-content: center; }
-        svg { width: 90px; height: 90px; stroke: var(--g); fill: none; stroke-width: 2; }
+        .btn-close { background: var(--r); color: #000; border: none; padding: 8px 15px; font-weight: bold; cursor: pointer; border-radius: 2px; }
         
-        .btn-action { 
-            width: 100%; padding: 18px; background: #0a0f0a; border: 1px solid var(--g); 
-            color: var(--g); font-weight: bold; margin-bottom: 12px; font-size: 14px;
-        }
-        
-        textarea, input { 
-            width: 100%; background: #000; border: 1px solid var(--border); 
-            color: var(--g); padding: 15px; font-size: 16px; margin-bottom: 15px;
-        }
+        .lib-card { background: #080b08; border: 1px solid #1a1f1a; padding: 15px; margin-bottom: 15px; border-left: 4px solid var(--g); }
+        .diag-box { width: 100%; height: 120px; border: 1px solid #1a1f1a; margin: 10px 0; background: #000; display: flex; align-items: center; justify-content: center; }
+        svg { width: 80px; height: 80px; stroke: var(--g); fill: none; stroke-width: 2; }
+        h4 { font-size: 14px; margin-bottom: 5px; color: var(--g); text-transform: uppercase; }
+        p { font-size: 12px; color: #aaa; line-height: 1.4; }
 
-        /* MAPA */
+        /* BOTONES E INPUTS */
+        .btn-action { width: 100%; padding: 16px; background: #0a0f0a; border: 1px solid var(--g); color: var(--g); font-weight: bold; margin-bottom: 12px; font-size: 13px; cursor: pointer; }
+        textarea, input { width: 100%; background: #000; border: 1px solid var(--border); color: var(--g); padding: 15px; font-size: 14px; margin-bottom: 15px; }
+
+        /* MAPA Y HERRAMIENTAS */
         #map { width: 100%; height: 100%; background: #000; z-index: 1; }
-        .map-tools { 
-            position: absolute; bottom: 30px; left: 5%; width: 90%; 
-            z-index: 3500; display: flex; gap: 8px;
-        }
-        .btn-m { 
-            flex: 1; padding: 15px 5px; font-size: 10px; background: rgba(0,0,0,0.9); 
-            border: 1px solid var(--g); color: var(--g); font-weight: bold;
-            backdrop-filter: blur(10px);
-        }
-
-        #strobe { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9000; pointer-events: none; opacity: 0; background: #fff; }
+        .map-tools { position: absolute; bottom: 30px; left: 5%; width: 90%; z-index: 3500; display: flex; gap: 8px; }
+        .btn-m { flex: 1; padding: 15px 5px; font-size: 10px; background: rgba(0,0,0,0.9); border: 1px solid var(--g); color: var(--g); font-weight: bold; backdrop-filter: blur(10px); }
     </style>
 </head>
 <body>
@@ -106,28 +54,30 @@
 
 <header class="ui-header">
     <div class="status-bar">
-        <span>NOMD_OS_v12.0_GOLD</span>
+        <span>NOMD_OS_v12.1_COMPLETE</span>
         <span id="timer">00:00:00</span>
     </div>
     <div id="gps-display">SISTEMA LISTO. ESPERANDO SEÑAL GPS...</div>
 </header>
 
 <main class="main-grid">
-    <div class="t-card" onclick="openMod('m-map')"><div class="icon">🛰️</div><span>MAPA_TACTICO</span></div>
-    <div class="t-card" onclick="openMod('m-med')"><div class="icon">⚕️</div><span>MED_CORPS</span></div>
+    <div class="t-card" onclick="openMod('m-map')"><div class="icon">🛰️</div><span>MAPA TACTICO</span></div>
+    <div class="t-card" onclick="openMod('m-med')"><div class="icon">⚕️</div><span>MED CORPS</span></div>
     <div class="t-card" onclick="openMod('m-surv')"><div class="icon">🌲</div><span>SURVIVAL</span></div>
-    <div class="t-card" onclick="openMod('m-cipher')"><div class="icon">🔐</div><span>CIFRADO</span></div>
-    <div class="t-card" onclick="openMod('m-note')"><div class="icon">📝</div><span>LOG_MISION</span></div>
+    <div class="t-card" onclick="openMod('m-knots')"><div class="icon">🪢</div><span>NUDOS</span></div>
     <div class="t-card" onclick="openMod('m-com')"><div class="icon">📡</div><span>COMMS</span></div>
+    <div class="t-card" onclick="openMod('m-nvg')"><div class="icon">👁️</div><span>VISOR NVG</span></div>
+    <div class="t-card" onclick="openMod('m-cipher')"><div class="icon">🔐</div><span>CIFRADO</span></div>
+    <div class="t-card" onclick="openMod('m-note')"><div class="icon">📝</div><span>LOG MISION</span></div>
 </main>
 
 <div id="m-map" class="modal">
     <div class="m-head">SISTEMA_GEOPOSICION<button class="btn-close" onclick="closeMod()">X</button></div>
     <div id="map"></div>
     <div class="map-tools">
-        <button class="btn-m" id="btn-hostile" onclick="setMarkerType('hostile')" style="color:var(--r)">HOSTIL</button>
-        <button class="btn-m" id="btn-friend" onclick="setMarkerType('friend')" style="color:var(--b)">ALIADO</button>
-        <button class="btn-m" onclick="centerMap()">MI_POS</button>
+        <button class="btn-m" onclick="mType='hostile'" style="border-color:var(--r)">HOSTIL</button>
+        <button class="btn-m" onclick="mType='friend'" style="border-color:var(--b)">ALIADO</button>
+        <button class="btn-m" onclick="centerMap()" style="border-color:var(--g)">MI_POS</button>
         <button class="btn-m" onclick="clearMap()">BORRAR</button>
     </div>
 </div>
@@ -135,18 +85,31 @@
 <div id="m-med" class="modal">
     <div class="m-head">PROTOCOLO_MEDICO<button class="btn-close" onclick="closeMod()">X</button></div>
     <div class="m-content">
-        <div id="triage-box" class="lib-card">
+        <div id="triage-box" class="lib-card" style="border-left-color:var(--r)">
             <h4>TRIAJE RÁPIDO (S.T.A.R.T.)</h4>
-            <p id="t-q">¿Puede el paciente caminar?</p><br>
-            <button class="btn-action" onclick="triageAction('VERDE')">SÍ</button>
-            <button class="btn-action" onclick="triageStep(1)">NO</button>
+            <p>¿Puede el paciente caminar?</p><br>
+            <button class="btn-action" onclick="tRes('VERDE (LEVE)')">SÍ (VERDE)</button>
+            <button class="btn-action" onclick="nextT(1)">NO</button>
         </div>
         <div class="lib-card">
-            <h4>CONTROL DE HEMORRAGIAS</h4>
-            <div class="diag-box">
-                <svg viewBox="0 0 100 60"><rect x="25" y="25" width="50" height="10" rx="2"/><line x1="50" y1="10" x2="50" y2="50" stroke-width="5"/></svg>
-            </div>
-            <p><strong>TORNIQUETE:</strong> Colocar 5-8cm por encima de la herida. Apretar hasta que el pulso distal desaparezca. NUNCA aflojar fuera de entorno hospitalario.</p>
+            <h4>1. TORNIQUETE TÁCTICO</h4>
+            <div class="diag-box"><svg viewBox="0 0 100 60"><rect x="20" y="25" width="60" height="10" rx="2"/><line x1="50" y1="15" x2="50" y2="45" stroke-width="4"/><path d="M40,15 L60,15"/></svg></div>
+            <p>Aplicar 5-8cm sobre la herida sangrante. Girar el maneral hasta que el sangrado arterial pare por completo. Bloquear y anotar hora.</p>
+        </div>
+        <div class="lib-card">
+            <h4>2. SELLO DE PECHO</h4>
+            <div class="diag-box"><svg viewBox="0 0 100 60"><path d="M30,10 L70,10 L70,50 L30,50 Z"/><circle cx="50" cy="30" r="5"/><line x1="50" y1="30" x2="50" y2="10"/></svg></div>
+            <p>Limpiar sangre de la herida. Aplicar sello ocluyendo el agujero. Si es un parche improvisado, dejar una esquina libre (válvula).</p>
+        </div>
+        <div class="lib-card">
+            <h4>3. VENDAJE EN OCHO</h4>
+            <div class="diag-box"><svg viewBox="0 0 100 60"><path d="M30,20 Q50,5 70,20 Q90,35 70,50 Q50,65 30,50 Q10,35 30,20"/></svg></div>
+            <p>Usar en articulaciones. Pasar la venda alternando arriba y abajo de la articulación cruzando en el centro para máxima estabilidad.</p>
+        </div>
+        <div class="lib-card">
+            <h4>4. ENTABLILLADO</h4>
+            <div class="diag-box"><svg viewBox="0 0 100 60"><line x1="10" y1="20" x2="90" y2="20"/><line x1="10" y1="40" x2="90" y2="40"/><path d="M50,20 L50,40"/></svg></div>
+            <p>Usar ramas o cartón. Inmovilizar la articulación superior e inferior a la fractura para evitar desplazamientos óseos.</p>
         </div>
     </div>
 </div>
@@ -155,33 +118,82 @@
     <div class="m-head">MANUAL_DE_CAMPO<button class="btn-close" onclick="closeMod()">X</button></div>
     <div class="m-content">
         <div class="lib-card">
-            <h4>FUEGO POR FRICCIÓN</h4>
+            <h4>1. REFUGIO LEAN-TO</h4>
+            <div class="diag-box"><svg viewBox="0 0 100 60"><line x1="10" y1="50" x2="90" y2="50"/><line x1="20" y1="50" x2="70" y2="10"/><line x1="70" y1="10" x2="70" y2="50" stroke-dasharray="3"/></svg></div>
+            <p>Busca una rama transversal fuerte. Coloca ramas a 45° de donde viene el viento. Cubre con follaje de abajo hacia arriba (como tejas).</p>
+        </div>
+        <div class="lib-card">
+            <h4>2. DESTILACIÓN SOLAR</h4>
+            <div class="diag-box"><svg viewBox="0 0 100 60"><path d="M10,20 Q50,60 90,20"/><circle cx="50" cy="25" r="3" fill="var(--g)"/></svg></div>
+            <p>Cava un hoyo en zona húmeda. Coloca un vaso en el centro, cubre con plástico y pon una piedra. El sol evaporará el agua y goteará pura al vaso.</p>
+        </div>
+        <div class="lib-card" style="border-left-color:var(--r)">
+            <h4>3. FUEGO (ARCO)</h4>
             <div class="diag-box"><svg viewBox="0 0 100 60"><path d="M20,20 Q50,5 80,20"/><line x1="50" y1="10" x2="50" y2="50"/><rect x="30" y="50" width="40" height="5"/></svg></div>
-            <p>Usa madera seca. La fricción genera calor acumulado en el serrín. Transfiere la brasa al nido de yesca con cuidado.</p>
+            <p>Usa un arco para hacer girar un eje de madera dura sobre madera blanda. La fricción creará polvillo caliente. Vierte en yesca seca y sopla.</p>
+        </div>
+        <div class="lib-card" style="border-left-color:var(--b)">
+            <h4>4. ESPEJO DE SEÑALES</h4>
+            <div class="diag-box"><svg viewBox="0 0 100 60"><rect x="35" y="15" width="30" height="30"/><circle cx="50" cy="30" r="3"/></svg></div>
+            <p>Mira el avión/barco a través del agujero central. Extiende el otro brazo y usa tus dedos como "mira". Mueve el espejo para que el destello rebote al objetivo.</p>
         </div>
         <div class="lib-card" style="border-left-color:var(--a)">
-            <h4>PURIFICACIÓN DE AGUA</h4>
-            <div class="diag-box"><svg viewBox="0 0 100 60"><path d="M30,10 L70,10 L50,50 Z"/></svg></div>
-            <p>Hervir es el método más seguro (1 min). Si no hay fuego, usa filtración por capas (arena, carbón, grava) y desinfección solar (SODIS).</p>
+            <h4>5. RELOJ DE SOL (NORTE)</h4>
+            <div class="diag-box"><svg viewBox="0 0 100 60"><circle cx="50" cy="50" r="30" stroke-dasharray="4"/><line x1="50" y1="50" x2="50" y2="20"/></svg></div>
+            <p>Clava un palo. Marca la sombra (Oeste). Espera 15 min y marca la nueva sombra (Este). La línea entre las piedras indica el eje O-E.</p>
         </div>
     </div>
+</div>
+
+<div id="m-knots" class="modal">
+    <div class="m-head">NUDOS_TACTICOS<button class="btn-close" onclick="closeMod()">X</button></div>
+    <div class="m-content">
+        <div class="lib-card">
+            <h4>AS DE GUÍA (BOWLINE)</h4>
+            <div class="diag-box"><svg viewBox="0 0 100 60"><path d="M50,10 C30,10 30,40 50,40 C70,40 70,10 50,10 M50,40 L50,55"/></svg></div>
+            <p>Nudo de rescate que forma un lazo fijo que no se corre ni se aprieta bajo tensión. Indispensable.</p>
+        </div>
+        <div class="lib-card">
+            <h4>NUDO EN OCHO</h4>
+            <div class="diag-box"><svg viewBox="0 0 100 60"><path d="M30,20 Q50,5 70,20 Q90,35 70,50 Q50,65 30,50 Q10,35 30,20"/></svg></div>
+            <p>Nudo de tope muy fuerte. Se usa en escalada para evitar que la cuerda se deslice fuera de un mosquetón o polea.</p>
+        </div>
+    </div>
+</div>
+
+<div id="m-com" class="modal">
+    <div class="m-head">COMMS_CENTER<button class="btn-close" onclick="closeMod()">X</button></div>
+    <div class="m-content">
+        <button class="btn-action" onclick="sendSOS()">ENVIAR SMS SOS (COORDENADAS)</button>
+        <button class="btn-action" onclick="strobeToggle()" style="border-color:var(--a)">ACTIVAR STROBE LIGHT</button>
+        <div class="lib-card" style="margin-top:20px;">
+            <h4>MORSE LUMINOSO</h4>
+            <input type="text" id="morse-msg" placeholder="Escribe el texto aquí...">
+            <button class="btn-action" onclick="runMorse()">TRANSMITIR MENSAJE</button>
+        </div>
+    </div>
+</div>
+
+<div id="m-nvg" class="modal">
+    <div class="m-head">NVG_OPTICS<button class="btn-close" onclick="stopNVG()">OFF</button></div>
+    <video id="nvg-video" style="width:100%; height:100%; object-fit:cover; filter: sepia(1) hue-rotate(60deg) brightness(1.6) contrast(2);" autoplay playsinline></video>
 </div>
 
 <div id="m-cipher" class="modal">
     <div class="m-head">SEGURIDAD_DATOS<button class="btn-close" onclick="closeMod()">X</button></div>
     <div class="m-content">
-        <textarea id="cipher-txt" placeholder="Mensaje original..."></textarea>
-        <input type="text" id="cipher-key" placeholder="LLAVE DE CIFRADO">
+        <textarea id="cipher-txt" placeholder="Mensaje original o texto cifrado..."></textarea>
+        <input type="text" id="cipher-key" placeholder="LLAVE DE CIFRADO SECRETA">
         <button class="btn-action" onclick="runCipher(true)">CIFRAR MENSAJE</button>
-        <button class="btn-action" style="border-color:var(--a)" onclick="runCipher(false)">DESCIFRAR</button>
+        <button class="btn-action" style="border-color:var(--a)" onclick="runCipher(false)">DESCIFRAR MENSAJE</button>
     </div>
 </div>
 
 <div id="m-note" class="modal">
     <div class="m-head">LOG_DE_OPERACIONES<button class="btn-close" onclick="closeMod()">X</button></div>
     <div class="m-content">
-        <div id="save-indicator" style="font-size:10px; margin-bottom:5px; text-align:right">AUTOGUARDADO ACTIVADO</div>
-        <textarea id="note-area" style="height:400px" placeholder="Inicia el registro de misión..."></textarea>
+        <div id="save-indicator" style="font-size:10px; margin-bottom:5px; text-align:right; color:var(--g)">AUTOGUARDADO ACTIVADO</div>
+        <textarea id="note-area" style="height:350px" placeholder="Inicia el registro. Los datos persistirán..."></textarea>
         <button class="btn-action" style="border-color:var(--r); color:var(--r)" onclick="wipeData()">BORRADO TOTAL DE DATOS</button>
     </div>
 </div>
@@ -189,30 +201,28 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
     let map, userMarker, stream, lastPos = {lat: 0, lon: 0}, mType = 'hostile', markers = [];
+    let strobeInt, isStrobe = false;
 
     // RELOJ
     setInterval(() => { document.getElementById('timer').innerText = new Date().toLocaleTimeString('es-ES', {hour12:false}); }, 1000);
 
     // PERSISTENCIA DE NOTAS
     const nArea = document.getElementById('note-area');
-    nArea.value = localStorage.getItem('nomd_gold_notes') || "";
+    nArea.value = localStorage.getItem('nomd_v12_notes') || "";
     nArea.addEventListener('input', () => { 
-        localStorage.setItem('nomd_gold_notes', nArea.value);
+        localStorage.setItem('nomd_v12_notes', nArea.value);
         document.getElementById('save-indicator').innerText = "GUARDANDO...";
         setTimeout(() => { document.getElementById('save-indicator').innerText = "AUTOGUARDADO ACTIVADO"; }, 1000);
     });
 
-    // GPS MEJORADO
+    // GPS CORE
     function initGPS() {
         if ("geolocation" in navigator) {
             navigator.geolocation.watchPosition(p => {
-                lastPos.lat = p.coords.latitude;
-                lastPos.lon = p.coords.longitude;
-                document.getElementById('gps-display').innerText = `POS: ${lastPos.lat.toFixed(5)}, ${lastPos.lon.toFixed(5)} (PRECISIÓN: ${p.coords.accuracy.toFixed(0)}m)`;
+                lastPos.lat = p.coords.latitude; lastPos.lon = p.coords.longitude;
+                document.getElementById('gps-display').innerText = `POS: ${lastPos.lat.toFixed(5)}, ${lastPos.lon.toFixed(5)} | ACC: ${p.coords.accuracy.toFixed(0)}m`;
                 if(userMarker) userMarker.setLatLng([lastPos.lat, lastPos.lon]);
-            }, (e) => {
-                document.getElementById('gps-display').innerText = "ERROR: ACTIVA EL GPS";
-            }, {enableHighAccuracy: true});
+            }, () => { document.getElementById('gps-display').innerText = "ERROR GPS: PERMISO DENEGADO"; }, {enableHighAccuracy: true});
         }
     }
 
@@ -233,39 +243,67 @@
                 map.invalidateSize(); 
                 if(!userMarker && lastPos.lat !== 0) {
                     userMarker = L.circleMarker([lastPos.lat, lastPos.lon], {color: '#00ff41', fillColor: '#00ff41', fillOpacity: 1, radius: 8, weight: 6}).addTo(map);
-                    userMarker.bindTooltip("YO", {permanent: true, direction: 'top'});
+                    userMarker.bindTooltip("OPERADOR", {permanent: true, direction: 'top'}).openTooltip();
                 }
             }, 300);
         }
+        if(id === 'm-nvg') startNVG();
     }
 
     function closeMod() { document.querySelectorAll('.modal').forEach(m => m.style.display='none'); }
     function centerMap() { if(lastPos.lat !== 0 && map) map.setView([lastPos.lat, lastPos.lon], 17); }
     function clearMap() { markers.forEach(m => map.removeLayer(m)); markers = []; }
-    function setMarkerType(t) { mType = t; }
 
     // TRIAGE LÓGICA
-    function triageStep(s) {
+    function nextT(s) {
         const box = document.getElementById('triage-box');
-        if(s===1) box.innerHTML = `<h4>PASO 2</h4><p>¿Respira el paciente?</p><br><button class="btn-action" onclick="triageStep(2)">SÍ</button><button class="btn-action" onclick="triageAction('NEGRO')">NO</button>`;
-        else if(s===2) box.innerHTML = `<h4>PASO 3</h4><p>Frecuencia Respiratoria:</p><br><button class="btn-action" onclick="triageAction('AMARILLO')">BAJA (<30)</button><button class="btn-action" onclick="triageAction('ROJO')">ALTA (>30)</button>`;
+        if(s===1) box.innerHTML = `<h4>PASO 2</h4><p>¿Respira el paciente?</p><br><button class="btn-action" onclick="nextT(2)">SÍ</button><button class="btn-action" onclick="tRes('NEGRO (FALLECIDO)')">NO</button>`;
+        else if(s===2) box.innerHTML = `<h4>PASO 3</h4><p>Frecuencia Respiratoria:</p><br><button class="btn-action" onclick="nextT(3)">MENOS DE 30/MIN</button><button class="btn-action" onclick="tRes('ROJO (INMEDIATO)')">MÁS DE 30/MIN</button>`;
+        else if(s===3) box.innerHTML = `<h4>PASO 4</h4><p>Pulso Radial / Relleno Capilar:</p><br><button class="btn-action" onclick="tRes('AMARILLO (DEMORABLE)')">FUERTE / < 2s</button><button class="btn-action" onclick="tRes('ROJO (INMEDIATO)')">DÉBIL / > 2s</button>`;
     }
-    function triageAction(r) { document.getElementById('triage-box').innerHTML = `<h3>STATUS: <span style="color:var(--g)">${r}</span></h3><br><button class="btn-action" onclick="location.reload()">NUEVO PACIENTE</button>`; }
+    function tRes(r) { document.getElementById('triage-box').innerHTML = `<h3>STATUS FINAL: <br><span style="color:#fff">${r}</span></h3><br><button class="btn-action" onclick="location.reload()">NUEVO PACIENTE</button>`; }
+
+    // NVG
+    async function startNVG() {
+        try { stream = await navigator.mediaDevices.getUserMedia({video: {facingMode: "environment"}}); document.getElementById('nvg-video').srcObject = stream; }
+        catch(e) { alert("ERROR DE HARDWARE CÁMARA"); }
+    }
+    function stopNVG() { if(stream) stream.getTracks().forEach(t => t.stop()); closeMod(); }
+
+    // COMMS (SMS, STROBE, MORSE)
+    function sendSOS() { window.location.href = `sms:?body=EMERGENCIA. Mis coordenadas son: ${lastPos.lat},${lastPos.lon}`; }
+    
+    function strobeToggle() {
+        const s = document.getElementById('strobe');
+        if(isStrobe){ clearInterval(strobeInt); isStrobe=false; s.style.opacity="0"; }
+        else { isStrobe=true; strobeInt = setInterval(() => { s.style.opacity = s.style.opacity === "1" ? "0" : "1"; }, 50); }
+    }
+
+    async function runMorse() {
+        const txt = document.getElementById('morse-msg').value.toUpperCase();
+        if(!txt) return alert("INTRODUCE TEXTO");
+        const s = document.getElementById('strobe'); s.style.background = "#fff";
+        const dict = {'A':'.-','B':'-...','C':'-.-.','D':'-..','E':'.','F':'..-.','G':'--.','H':'....','I':'..','J':'.---','K':'-.-','L':'.-..','M':'--','N':'-.','O':'---','P':'.--.','Q':'--.-','R':'.-.','S':'...','T':'-','U':'..-','V':'...-','W':'.--','X':'-..-','Y':'-.--','Z':'--..',' ':'/'};
+        for(let char of txt){
+            let code = dict[char]; if(!code) continue;
+            for(let dotDash of code){
+                s.style.opacity="1"; await new Promise(r=>setTimeout(r, dotDash==='.'?200:600));
+                s.style.opacity="0"; await new Promise(r=>setTimeout(r, 200));
+            }
+            await new Promise(r=>setTimeout(r, 400));
+        }
+    }
 
     // CIFRADO
     function runCipher(isEnc) {
         const txt = document.getElementById('cipher-txt');
         const key = document.getElementById('cipher-key').value || "X";
         if(isEnc) { txt.value = btoa(key + "|" + txt.value); }
-        else {
-            try { 
-                let raw = atob(txt.value);
-                txt.value = raw.split("|")[1];
-            } catch(e) { alert("ERROR DE LLAVE"); }
-        }
+        else { try { let raw = atob(txt.value); txt.value = raw.split("|")[1]; } catch(e) { alert("LLAVE INVÁLIDA"); } }
     }
 
-    function wipeData() { if(confirm("¿ELIMINAR TODO EL REGISTRO?")) { localStorage.clear(); location.reload(); } }
+    // WIPE DATA
+    function wipeData() { if(confirm("¿ELIMINAR TODO EL REGISTRO LOCAL?")) { localStorage.clear(); location.reload(); } }
 
     window.onload = initGPS;
 </script>
