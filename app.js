@@ -2,49 +2,49 @@ let map, userMarker;
 let lastPos = { lat: 0, lon: 0 };
 let strobeInt, strobeActive = false;
 function forceGPS() {
-        // Forzamos al iPhone a usar el sensor GPS de alta precisión
-        navigator.geolocation.getCurrentPosition(p => {
+        if (!navigator.geolocation) {
+            document.getElementById('gps-box').innerText = "GPS NO SOPORTADO";
+            return;
+        }
+
+        const options = {
+            enableHighAccuracy: true,
+            timeout: 5000,
+            maximumAge: 0
+        };
+
+        // Usamos watchPosition en lugar de getCurrentPosition para forzar al iPhone
+        navigator.geolocation.watchPosition(p => {
+            gpsOnce = true;
             lastPos.lat = p.coords.latitude;
             lastPos.lon = p.coords.longitude;
+            
             const box = document.getElementById('gps-box');
             box.innerText = `POS: ${lastPos.lat.toFixed(4)} | ${lastPos.lon.toFixed(4)}`;
-            box.style.color = "var(--g)"; 
+            box.style.color = "var(--g)";
             box.style.borderColor = "var(--g)";
             
             if(map) {
-                if(!gpsOnce) { map.setView([lastPos.lat, lastPos.lon], 16); gpsOnce = true; }
+                // Solo centramos el mapa automáticamente la primera vez
+                if(!window.firstLoadDone) {
+                    map.setView([lastPos.lat, lastPos.lon], 16);
+                    window.firstLoadDone = true;
+                }
                 if(userMarker) map.removeLayer(userMarker);
                 userMarker = L.circleMarker([lastPos.lat, lastPos.lon], {
-                    color: '#00ff41', 
-                    radius: 10, 
-                    fillOpacity:1,
+                    color: '#00ff41',
+                    radius: 10,
+                    fillOpacity: 1,
                     weight: 3
                 }).addTo(map);
             }
         }, (error) => {
-            let msg = "ERROR GPS";
-            if(error.code === 1) msg = "BLOQUEADO POR SAFARI";
-            if(error.code === 2) msg = "BUSCANDO SEÑAL...";
-            document.getElementById('gps-box').innerText = msg;
-            document.getElementById('gps-box').style.color = "var(--r)";
-        }, {
-            enableHighAccuracy: true,
-            timeout: 10000,
-            maximumAge: 0
-        });
+            const box = document.getElementById('gps-box');
+            if(error.code === 1) box.innerText = "BLOQUEADO: VE A AJUSTES > SAFARI";
+            else box.innerText = "BUSCANDO SEÑAL GPS...";
+            box.style.color = "var(--r)";
+        }, options);
     }
-
-    function openMod(id) {
-        document.getElementById(id).style.display = 'flex';
-        if(id === 'm-map') {
-            if(!map) {
-                map = L.map('map', {zoomControl: false}).setView([0,0], 2);
-                L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}').addTo(map);
-            }
-            setTimeout(() => { map.invalidateSize(); forceGPS(); }, 400);
-        }
-    }
-
     let dTime, dRun = false;
     function calcDist() {
         const b = document.getElementById('dist-btn');
@@ -193,3 +193,4 @@ window.onload = () => {
     forceGPS();
 
 };
+
