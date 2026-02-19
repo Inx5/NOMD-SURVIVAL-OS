@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>NOMD TACTICAL v9.2</title>
+    <title>NOMD TACTICAL v9.5</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
@@ -11,6 +11,7 @@
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: 'Share Tech Mono', monospace; }
         body { background: var(--bg); color: var(--g); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
         
+        #strobe-layer { position: fixed; top:0; left:0; width:100%; height:100%; z-index: 9999; pointer-events: none; opacity: 0; }
         .ui-header { padding: 12px; border-bottom: 2px solid var(--g); background: #000; z-index: 100; }
         #gps-box { background: rgba(0,40,0,0.5); padding: 8px; border: 1px solid var(--g); text-align: center; font-size: 12px; margin-top: 8px; }
         
@@ -29,38 +30,41 @@
 
         .btn-action { width: 100%; padding: 15px; background: #000; border: 1px solid var(--g); color: var(--g); margin-bottom: 10px; font-weight: bold; }
         .lib-card { background: #111; border: 1px solid #444; padding: 12px; margin-bottom: 15px; border-left: 4px solid var(--a); }
-        textarea { width: 100%; height: 200px; background: #000; color: var(--g); border: 1px solid var(--g); padding: 10px; }
+        .lib-card img { width: 100%; border: 1px solid var(--g); margin: 10px 0; filter: grayscale(1) sepia(1) hue-rotate(60deg); }
+        textarea, input[type="text"] { width: 100%; background: #000; color: var(--g); border: 1px solid var(--g); padding: 12px; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
+<div id="strobe-layer"></div>
+
 <header class="ui-header">
     <div style="display:flex; justify-content: space-between; font-size: 11px;">
-        <span>NOMD SYSTEM v9.2</span>
+        <span>NOMD v9.5_FIELD_OP</span>
         <span id="timer" style="color:var(--a)">00:00:00</span>
     </div>
-    <div id="gps-box">INICIALIZANDO...</div>
+    <div id="gps-box">ESTABLECIENDO ENLACE...</div>
 </header>
 
 <main class="main-grid">
-    <div class="t-card" onclick="openMod('m-map')">🌐<span>MAPA TÁCTICO</span></div>
+    <div class="t-card" onclick="openMod('m-map')">🌐<span>MAPA SAT</span></div>
     <div class="t-card" onclick="openMod('m-nvg')">👁️<span>VISOR NVG</span></div>
-    <div class="t-card" onclick="openMod('m-intel')">📊<span>INTEL / SYS</span></div>
-    <div class="t-card" onclick="openMod('m-med')">⚕️<span>TRIAGE MED</span></div>
+    <div class="t-card" onclick="openMod('m-intel')">☁️<span>TIEMPO / INTEL</span></div>
+    <div class="t-card" onclick="openMod('m-med')">⚕️<span>TRIAGE / CURAS</span></div>
     <div class="t-card" onclick="openMod('m-surv')">📖<span>SURVIVAL</span></div>
-    <div class="t-card" onclick="openMod('m-note')">💾<span>BLOC DATOS</span></div>
-    <div class="t-card" onclick="openMod('m-knots')">🪢<span>NUDOS R.</span></div>
-    <div class="t-card" onclick="openMod('m-com')">📻<span>COMUNICAC.</span></div>
+    <div class="t-card" onclick="openMod('m-note')">💾<span>NOTAS</span></div>
+    <div class="t-card" onclick="openMod('m-knots')">🪢<span>NUDOS</span></div>
+    <div class="t-card" onclick="openMod('m-com')">📻<span>COMMS / MORSE</span></div>
 </main>
 
 <div id="m-map" class="modal">
-    <div class="m-head">STRIKE_MAP_SAT<button onclick="closeMod()">[X]</button></div>
+    <div class="m-head">STRIKE_MAP<button onclick="closeMod()">[X]</button></div>
     <div id="map"></div>
     <div class="map-tools">
         <button class="btn-m" onclick="mType='hostile'" style="border-color:var(--r)">HOSTIL</button>
         <button class="btn-m" onclick="mType='friend'" style="border-color:var(--b)">ALIADO</button>
         <button class="btn-m" onclick="mType='poi'" style="border-color:var(--a)">P.O.I</button>
-        <button class="btn-m" onclick="clearMap()" style="border-color:#fff">BORRAR</button>
+        <button class="btn-m" onclick="clearMap()" style="border-color:#fff">LIMPIAR</button>
     </div>
 </div>
 
@@ -70,89 +74,108 @@
 </div>
 
 <div id="m-intel" class="modal">
-    <div class="m-head">SYSTEM_INTEL<button onclick="closeMod()">[X]</button></div>
+    <div class="m-head">METEO_INTEL<button onclick="closeMod()">[X]</button></div>
     <div class="m-content">
         <div class="lib-card">
-            <p>BATTERY: <span id="bat-lv">...</span></p>
-            <p>STATE: <span id="bat-st">...</span></p>
-            <p>NETWORK: <span id="net-type">...</span></p>
+            <h3>CONDICIONES LOCALES</h3>
+            <p>TEMP: 18°C (EST.)</p>
+            <p>VIENTO: 12 KM/H NE</p>
+            <p>HUMEDAD: 65%</p>
+            <p>VISIBILIDAD: ÓPTIMA</p>
         </div>
-        <div class="lib-card" style="border-left-color:var(--a)">
-            <p>SUNRISE: 07:21 | SUNSET: 18:49</p>
-            <p>LUNA: CRECIENTE</p>
+        <div class="lib-card" style="border-left-color:var(--b)">
+            <h3>CICLO SOLAR</h3>
+            <p>SOL: 07:22 | 18:48</p>
+            <p>LUNA: CUARTO MENGUANTE</p>
         </div>
     </div>
 </div>
 
 <div id="m-med" class="modal">
-    <div class="m-head">TRIAGE_PROTOCOL<button onclick="closeMod()">[X]</button></div>
-    <div class="m-content" id="triage-box">
-        <p>¿EL PACIENTE PUEDE CAMINAR?</p>
-        <button class="btn-action" onclick="tRes('VERDE')">SÍ (LEVE)</button>
-        <button class="btn-action" onclick="nextT(1)">NO</button>
+    <div class="m-head">MED_UNIT<button onclick="closeMod()">[X]</button></div>
+    <div class="m-content">
+        <div id="triage-box" class="lib-card">
+            <p>¿EL PACIENTE PUEDE CAMINAR?</p>
+            <button class="btn-action" onclick="tRes('VERDE')">SÍ</button>
+            <button class="btn-action" onclick="nextT(1)">NO</button>
+        </div>
+        <h3 style="margin:20px 0 10px;">MANUAL DE CURAS TÁCTICAS:</h3>
+        <div class="lib-card">
+            <h4>1. TORNIQUETE (EXTREMIDADES)</h4>
+            <img src="https://img.freepik.com/vector-premium/instrucciones-primeros-auxilios-como-aplicar-torniquete-herida-brazo-pierna_530733-1466.jpg" alt="Torniquete">
+            <p>Colocar 5-8cm por encima de la herida. Apretar hasta que cese el sangrado. Anotar hora.</p>
+        </div>
+        <div class="lib-card">
+            <h4>2. RCP (REANIMACIÓN)</h4>
+            <img src="https://img.freepik.com/vector-premium/infografia-rcp-tecnica-reanimacion-cardiopulmonar-primeros-auxilios_53562-8504.jpg" alt="RCP">
+            <p>30 compresiones / 2 insuflaciones. Ritmo 100-120 bpm.</p>
+        </div>
+        <div class="lib-card">
+            <h4>3. QUEMADURAS</h4>
+            <p>Lavar con agua fría 10-20 min. No romper ampollas. Cubrir con apósito estéril no adherente.</p>
+        </div>
     </div>
 </div>
 
 <div id="m-surv" class="modal">
     <div class="m-head">SURVIVAL_BIBLE<button onclick="closeMod()">[X]</button></div>
     <div class="m-content">
-        <div class="lib-card"><h3>FUEGO DAKOTA</h3><p>Hoyo 30cm, túnel lateral para aire. Sin humo.</p></div>
-        <div class="lib-card"><h3>AGUA</h3><p>Destilación solar: Hoyo + plástico + piedra central.</p></div>
+        <div class="lib-card">
+            <h3>AGUA: DESTILACIÓN</h3>
+            <img src="https://i.pinimg.com/736x/8f/6f/a6/8f6fa6b0e9a59b5d2e76f9d606138a4d.jpg" alt="Agua">
+            <p>Cava un hoyo, coloca recipiente en centro, cubre con plástico y una piedra pequeña en medio.</p>
+        </div>
+        <div class="lib-card">
+            <h3>REFUGIO DE EMERGENCIA</h3>
+            <p>Usa manta térmica o lona. Orientación opuesta al viento dominante. Mantener suelo aislado.</p>
+        </div>
     </div>
 </div>
 
 <div id="m-knots" class="modal">
-    <div class="m-head">KNOTS_LIB<button onclick="closeMod()">[X]</button></div>
+    <div class="m-head">KNOT_GUIDE<button onclick="closeMod()">[X]</button></div>
     <div class="m-content">
-        <div class="lib-card"><h3>AS DE GUÍA</h3><p>Fijo, rescate, no se corre.</p></div>
-        <div class="lib-card"><h3>BALLESTRINQUE</h3><p>Amarre rápido a poste.</p></div>
-        <div class="lib-card"><h3>OCHO DOBLE</h3><p>Encordamiento de seguridad.</p></div>
+        <div class="lib-card">
+            <h4>AS DE GUÍA (BOWLINE)</h4>
+            <img src="https://www.animatedknots.com/assets/images/static/bowline.jpg" alt="As Guia">
+            <p>El nudo de rescate definitivo. No se desliza bajo carga.</p>
+        </div>
+        <div class="lib-card">
+            <h4>NUDO PRUSIK</h4>
+            <p>Autobloqueante. Ideal para subir por una cuerda fija o sistemas de poleas.</p>
+        </div>
     </div>
 </div>
 
 <div id="m-com" class="modal">
-    <div class="m-head">COMMS_LINK<button onclick="closeMod()">[X]</button></div>
+    <div class="m-head">COMMS_CENTER<button onclick="closeMod()">[X]</button></div>
     <div class="m-content">
-        <button class="btn-action" onclick="sendEmergency()">ENVIAR SOS SMS (COORD)</button>
-        <button class="btn-action" onclick="runStrobe('white')">STROBE LIGHT</button>
-        <div class="lib-card"><h3>MORSE</h3><p>SOS: ... --- ...</p></div>
+        <button class="btn-action" onclick="sendEmergency()">ENVIAR COORDENADAS SMS</button>
+        <button class="btn-action" onclick="runStrobe('white')">ACTIVAR STROBE LIGHT</button>
+        <div class="lib-card" style="border-left-color:var(--r)">
+            <h3>MORSE TRANSMITTER</h3>
+            <input type="text" id="morse-input" placeholder="TEXTO A TRANSMITIR...">
+            <button class="btn-action" onclick="runCustomMorse()">EMITIR PULSOS DE LUZ</button>
+        </div>
     </div>
 </div>
 
 <div id="m-note" class="modal">
-    <div class="m-head">ENCRYPTED_NOTES<button onclick="closeMod()">[X]</button></div>
-    <div class="m-content">
-        <textarea id="note-area" placeholder="Escriba aquí..."></textarea>
-        <button class="btn-action" style="border-color:var(--r); margin-top:10px;" onclick="document.getElementById('note-area').value=''; alert('WIPED')">PANIC WIPE</button>
-    </div>
+    <div class="m-head">NOTES<button onclick="closeMod()">[X]</button></div>
+    <div class="m-content"><textarea id="note-area" placeholder="Escriba aquí..."></textarea></div>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
     let map, userMarker, stream, lastPos = {lat: 0, lon: 0}, mType = 'hostile', markers = [];
 
-    // TIMER
     setInterval(() => { document.getElementById('timer').innerText = new Date().toLocaleTimeString(); }, 1000);
 
-    // INTEL BATERÍA
-    async function getBat() {
-        if(navigator.getBattery) {
-            const b = await navigator.getBattery();
-            const up = () => {
-                document.getElementById('bat-lv').innerText = Math.round(b.level * 100) + "%";
-                document.getElementById('bat-st').innerText = b.charging ? "CHARGING" : "DISCHARGING";
-            };
-            up(); b.onlevelchange = up; b.onchargingchange = up;
-        }
-        document.getElementById('net-type').innerText = navigator.onLine ? "ONLINE" : "OFFLINE";
-    }
-
-    // GPS & MAPA
     function initGPS() {
         navigator.geolocation.watchPosition(p => {
             lastPos.lat = p.coords.latitude;
             lastPos.lon = p.coords.longitude;
-            document.getElementById('gps-box').innerText = `LAT: ${lastPos.lat.toFixed(5)} | LON: ${lastPos.lon.toFixed(5)}`;
+            document.getElementById('gps-box').innerText = `POS: ${lastPos.lat.toFixed(5)} | ${lastPos.lon.toFixed(5)}`;
             if(map && !userMarker) {
                 map.setView([lastPos.lat, lastPos.lon], 16);
                 userMarker = L.circleMarker([lastPos.lat, lastPos.lon], {color: '#00ff41', radius: 8, fillOpacity: 1}).addTo(map);
@@ -162,7 +185,6 @@
 
     function openMod(id) {
         document.getElementById(id).style.display = 'flex';
-        if(id === 'm-intel') getBat();
         if(id === 'm-map') {
             if(!map) {
                 map = L.map('map', {zoomControl: false}).setView([0,0], 2);
@@ -179,28 +201,46 @@
     }
 
     function clearMap() { markers.forEach(m => map.removeLayer(m)); markers = []; }
-
     function closeMod() { document.querySelectorAll('.modal').forEach(m => m.style.display='none'); }
 
-    // TRIAGE LOGIC
+    // --- TRIAGE ---
     function nextT(s) {
         const b = document.getElementById('triage-box');
         if(s===1) b.innerHTML = `<p>¿RESPIRA?</p><button class="btn-action" onclick="nextT(2)">SÍ</button><button class="btn-action" onclick="tRes('NEGRO')">NO</button>`;
-        else if(s===2) b.innerHTML = `<p>PULSO RADIAL:</p><button class="btn-action" onclick="tRes('AMARILLO')">FUERTE</button><button class="btn-action" onclick="tRes('ROJO')">DÉBIL/AUSENTE</button>`;
+        else if(s===2) b.innerHTML = `<p>PULSO RADIAL:</p><button class="btn-action" onclick="tRes('AMARILLO')">FUERTE</button><button class="btn-action" onclick="tRes('ROJO')">DÉBIL</button>`;
     }
-    function tRes(r) { document.getElementById('triage-box').innerHTML = `<h2 style="color:var(--g)">RESULTADO: ${r}</h2><button class="btn-action" onclick="location.reload()">REINICIAR</button>`; }
+    function tRes(r) { document.getElementById('triage-box').innerHTML = `<h3>RESULTADO: ${r}</h3><button class="btn-action" onclick="location.reload()">RESET</button>`; }
 
-    // NVG
+    // --- NVG ---
     async function startNVG() {
         try { stream = await navigator.mediaDevices.getUserMedia({video: {facingMode: "environment"}}); document.getElementById('nvg-video').srcObject = stream; }
-        catch(e) { alert("ERROR CÁMARA"); }
+        catch(e) { alert("CAM_ERR"); }
     }
     function stopNVG() { if(stream) stream.getTracks().forEach(t => t.stop()); closeMod(); }
 
-    // COMMS
-    function sendEmergency() {
-        window.location.href = `sms:?body=EMERGENCIA. Coords: ${lastPos.lat},${lastPos.lon}`;
+    // --- COMMS & MORSE ---
+    let strobeInt, strobeActive = false;
+    function runStrobe(c) {
+        const l = document.getElementById('strobe-layer');
+        if(strobeActive){ clearInterval(strobeInt); strobeActive = false; l.style.opacity = "0"; }
+        else { strobeActive = true; l.style.background = c; strobeInt = setInterval(()=>l.style.opacity = l.style.opacity==="1"?"0":"1", 50); }
     }
+
+    async function runCustomMorse() {
+        const text = document.getElementById('morse-input').value.toUpperCase();
+        const l = document.getElementById('strobe-layer'); l.style.background = "white";
+        const M = {'A': '.-', 'B': '-...', 'C': '-.-.', 'D': '-..', 'E': '.', 'F': '..-.', 'G': '--.', 'H': '....', 'I': '..', 'J': '.---', 'K': '-.-', 'L': '.-..', 'M': '--', 'N': '-.', 'O': '---', 'P': '.--.', 'Q': '--.-', 'R': '.-.', 'S': '...', 'T': '-', 'U': '..-', 'V': '...-', 'W': '.--', 'X': '-..-', 'Y': '-.--', 'Z': '--..', ' ': '/'};
+        for(let char of text){
+            let code = M[char]; if(!code) continue;
+            for(let s of code){
+                l.style.opacity = "1"; await new Promise(r=>setTimeout(r, s==='.'?200:600));
+                l.style.opacity = "0"; await new Promise(r=>setTimeout(r, 200));
+            }
+            await new Promise(r=>setTimeout(r, 400));
+        }
+    }
+
+    function sendEmergency() { window.location.href = `sms:?body=EMERGENCIA. Coords: ${lastPos.lat},${lastPos.lon}`; }
 
     window.onload = initGPS;
 </script>
