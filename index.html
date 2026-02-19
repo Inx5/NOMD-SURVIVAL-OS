@@ -160,16 +160,19 @@
 
     function toggleNight() { document.body.classList.toggle('night-mode'); }
 
-    // --- MOTOR GPS OPTIMIZADO PARA CHROME / ANDROID / IOS ---
+// --- MOTOR GPS REFORZADO v7.8 ---
     function initGPS() {
         if (!navigator.geolocation) {
             document.getElementById('gps-box').innerText = "ERROR: GPS NO COMPATIBLE";
             return;
         }
 
+        // Este pequeño truco despierta al sensor en iPhone/Chrome
+        navigator.geolocation.getCurrentPosition(() => {}, () => {}, {timeout: 1000});
+
         const geoConfig = {
-            enableHighAccuracy: true,
-            timeout: 10000,
+            enableHighAccuracy: true, 
+            timeout: 20000, 
             maximumAge: 0
         };
 
@@ -185,6 +188,8 @@
                 if (!gpsStarted) { 
                     map.setView([lastPos.lat, lastPos.lon], 16); 
                     gpsStarted = true; 
+                    // Esto fuerza a que el mapa se dibuje sí o sí
+                    setTimeout(() => { map.invalidateSize(); }, 500);
                 }
                 if (userMarker) map.removeLayer(userMarker);
                 userMarker = L.circleMarker([lastPos.lat, lastPos.lon], {
@@ -194,8 +199,13 @@
         }, (err) => {
             const box = document.getElementById('gps-box');
             box.style.color = "var(--r)";
-            if(err.code === 1) box.innerText = "BLOQUEADO: PERMITIR EN CHROME/AJUSTES";
-            else box.innerText = "BUSCANDO SATÉLITES...";
+            if(err.code === 1) {
+                box.innerText = "BLOQUEO: AJUSTES > PRIVACIDAD > LOCALIZACIÓN";
+                // Este aviso es para que sepas que el iPhone ha cortado el grifo
+                console.error("El usuario denegó el acceso a la ubicación.");
+            } else {
+                box.innerText = "BUSCANDO SATÉLITES (MUEVE EL TERMINAL)...";
+            }
         }, geoConfig);
     }
 
