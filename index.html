@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>NOMD TACTICAL v9.5</title>
+    <title>NOMD TACTICAL v9.6</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
@@ -24,13 +24,22 @@
         .m-head { padding: 15px; border-bottom: 1px solid var(--g); display: flex; justify-content: space-between; background: #000; }
         .m-content { flex-grow: 1; overflow-y: auto; padding: 20px; }
 
-        #map { width: 100%; height: 100%; background: #000; }
-        .map-tools { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 999; display: flex; gap: 5px; width: 95%; }
-        .btn-m { flex: 1; padding: 10px 5px; font-size: 9px; background: #000; border: 1px solid var(--g); color: var(--g); font-weight: bold; }
+        /* IMÁGENES TÁCTICAS */
+        .img-tactical { 
+            width: 100%; 
+            max-height: 150px; 
+            object-fit: contain; 
+            border: 1px solid var(--g); 
+            margin: 10px 0; 
+            background: #111;
+            filter: brightness(0.8) contrast(1.2);
+        }
 
         .btn-action { width: 100%; padding: 15px; background: #000; border: 1px solid var(--g); color: var(--g); margin-bottom: 10px; font-weight: bold; }
         .lib-card { background: #111; border: 1px solid #444; padding: 12px; margin-bottom: 15px; border-left: 4px solid var(--a); }
-        .lib-card img { width: 100%; border: 1px solid var(--g); margin: 10px 0; filter: grayscale(1) sepia(1) hue-rotate(60deg); }
+        #map { width: 100%; height: 100%; background: #000; }
+        .map-tools { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 999; display: flex; gap: 5px; width: 95%; }
+        .btn-m { flex: 1; padding: 10px 5px; font-size: 9px; background: #000; border: 1px solid var(--g); color: var(--g); font-weight: bold; }
         textarea, input[type="text"] { width: 100%; background: #000; color: var(--g); border: 1px solid var(--g); padding: 12px; margin-bottom: 10px; }
     </style>
 </head>
@@ -40,10 +49,10 @@
 
 <header class="ui-header">
     <div style="display:flex; justify-content: space-between; font-size: 11px;">
-        <span>NOMD v9.5_FIELD_OP</span>
+        <span>NOMD v9.6_STRIKE</span>
         <span id="timer" style="color:var(--a)">00:00:00</span>
     </div>
-    <div id="gps-box">ESTABLECIENDO ENLACE...</div>
+    <div id="gps-box">ENLACE ACTIVO...</div>
 </header>
 
 <main class="main-grid">
@@ -58,13 +67,13 @@
 </main>
 
 <div id="m-map" class="modal">
-    <div class="m-head">STRIKE_MAP<button onclick="closeMod()">[X]</button></div>
+    <div class="m-head">MAPA_ESTABLE<button onclick="closeMod()">[X]</button></div>
     <div id="map"></div>
     <div class="map-tools">
         <button class="btn-m" onclick="mType='hostile'" style="border-color:var(--r)">HOSTIL</button>
         <button class="btn-m" onclick="mType='friend'" style="border-color:var(--b)">ALIADO</button>
         <button class="btn-m" onclick="mType='poi'" style="border-color:var(--a)">P.O.I</button>
-        <button class="btn-m" onclick="clearMap()" style="border-color:#fff">LIMPIAR</button>
+        <button class="btn-m" onclick="clearMap()" style="border-color:#fff">BORRAR</button>
     </div>
 </div>
 
@@ -76,18 +85,8 @@
 <div id="m-intel" class="modal">
     <div class="m-head">METEO_INTEL<button onclick="closeMod()">[X]</button></div>
     <div class="m-content">
-        <div class="lib-card">
-            <h3>CONDICIONES LOCALES</h3>
-            <p>TEMP: 18°C (EST.)</p>
-            <p>VIENTO: 12 KM/H NE</p>
-            <p>HUMEDAD: 65%</p>
-            <p>VISIBILIDAD: ÓPTIMA</p>
-        </div>
-        <div class="lib-card" style="border-left-color:var(--b)">
-            <h3>CICLO SOLAR</h3>
-            <p>SOL: 07:22 | 18:48</p>
-            <p>LUNA: CUARTO MENGUANTE</p>
-        </div>
+        <div class="lib-card"><h3>CONDICIONES LOCALES</h3><p>TEMP: 18°C | VIENTO: 12 KM/H NE | HUMEDAD: 65%</p></div>
+        <div class="lib-card" style="border-left-color:var(--b)"><h3>SOLAR/LUNAR</h3><p>SOL: 07:22 | 18:48</p></div>
     </div>
 </div>
 
@@ -99,20 +98,20 @@
             <button class="btn-action" onclick="tRes('VERDE')">SÍ</button>
             <button class="btn-action" onclick="nextT(1)">NO</button>
         </div>
-        <h3 style="margin:20px 0 10px;">MANUAL DE CURAS TÁCTICAS:</h3>
         <div class="lib-card">
-            <h4>1. TORNIQUETE (EXTREMIDADES)</h4>
-            <img src="https://img.freepik.com/vector-premium/instrucciones-primeros-auxilios-como-aplicar-torniquete-herida-brazo-pierna_530733-1466.jpg" alt="Torniquete">
-            <p>Colocar 5-8cm por encima de la herida. Apretar hasta que cese el sangrado. Anotar hora.</p>
+            <h4>1. TORNIQUETE TÁCTICO</h4>
+            <img class="img-tactical" src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Tourniquet_application.svg/800px-Tourniquet_application.svg.png" alt="Tourniquet">
+            <p>Aplicar 5-8cm sobre la herida. Girar hasta que el sangrado arterial cese por completo.</p>
         </div>
         <div class="lib-card">
-            <h4>2. RCP (REANIMACIÓN)</h4>
-            <img src="https://img.freepik.com/vector-premium/infografia-rcp-tecnica-reanimacion-cardiopulmonar-primeros-auxilios_53562-8504.jpg" alt="RCP">
-            <p>30 compresiones / 2 insuflaciones. Ritmo 100-120 bpm.</p>
+            <h4>2. RCP (COMPRESIONES)</h4>
+            <img class="img-tactical" src="https://scx2.b-cdn.net/gfx/news/2019/1-cpr.jpg" alt="RCP">
+            <p>Compresiones centro del pecho (100/min). 5cm de profundidad.</p>
         </div>
         <div class="lib-card">
             <h4>3. QUEMADURAS</h4>
-            <p>Lavar con agua fría 10-20 min. No romper ampollas. Cubrir con apósito estéril no adherente.</p>
+            <img class="img-tactical" src="https://images.tcdn.com.br/img/editor/up/652390/Queimaduras.jpg" alt="Quemaduras">
+            <p>Agua corriente fría (no helada). Cubrir con gasa limpia no adherente.</p>
         </div>
     </div>
 </div>
@@ -121,13 +120,14 @@
     <div class="m-head">SURVIVAL_BIBLE<button onclick="closeMod()">[X]</button></div>
     <div class="m-content">
         <div class="lib-card">
-            <h3>AGUA: DESTILACIÓN</h3>
-            <img src="https://i.pinimg.com/736x/8f/6f/a6/8f6fa6b0e9a59b5d2e76f9d606138a4d.jpg" alt="Agua">
-            <p>Cava un hoyo, coloca recipiente en centro, cubre con plástico y una piedra pequeña en medio.</p>
+            <h4>REFUGIO "LEAN-TO"</h4>
+            <img class="img-tactical" src="https://www.survival-manual.com/images/shelter/lean-to.gif" alt="Refugio">
+            <p>Una lona o ramas en ángulo de 45° contra el viento. Aísla el suelo con hojarasca.</p>
         </div>
         <div class="lib-card">
-            <h3>REFUGIO DE EMERGENCIA</h3>
-            <p>Usa manta térmica o lona. Orientación opuesta al viento dominante. Mantener suelo aislado.</p>
+            <h4>DESTILACIÓN SOLAR</h4>
+            <img class="img-tactical" src="https://www.oocities.org/yosemite/falls/9200/solar_still.gif" alt="Destilacion">
+            <p>Hoyo + Recipiente + Plástico. La condensación es agua pura.</p>
         </div>
     </div>
 </div>
@@ -137,12 +137,13 @@
     <div class="m-content">
         <div class="lib-card">
             <h4>AS DE GUÍA (BOWLINE)</h4>
-            <img src="https://www.animatedknots.com/assets/images/static/bowline.jpg" alt="As Guia">
-            <p>El nudo de rescate definitivo. No se desliza bajo carga.</p>
+            <img class="img-tactical" src="https://sailing-at-sea.com/wp-content/uploads/2019/12/Bowline-knot.png" alt="As Guia">
+            <p>Lazo fijo que no se corre. Vital para rescates.</p>
         </div>
         <div class="lib-card">
-            <h4>NUDO PRUSIK</h4>
-            <p>Autobloqueante. Ideal para subir por una cuerda fija o sistemas de poleas.</p>
+            <h4>NUDO EN OCHO</h4>
+            <img class="img-tactical" src="https://www.climb-guide.com/wp-content/uploads/2019/12/Figure-8-Knot.png" alt="Ocho">
+            <p>Nudo de tope para evitar que la cuerda se salga de un mosquetón o polea.</p>
         </div>
     </div>
 </div>
@@ -173,8 +174,7 @@
 
     function initGPS() {
         navigator.geolocation.watchPosition(p => {
-            lastPos.lat = p.coords.latitude;
-            lastPos.lon = p.coords.longitude;
+            lastPos.lat = p.coords.latitude; lastPos.lon = p.coords.longitude;
             document.getElementById('gps-box').innerText = `POS: ${lastPos.lat.toFixed(5)} | ${lastPos.lon.toFixed(5)}`;
             if(map && !userMarker) {
                 map.setView([lastPos.lat, lastPos.lon], 16);
@@ -191,8 +191,7 @@
                 L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}').addTo(map);
                 map.on('click', e => {
                     let c = {hostile: '#ff4141', friend: '#00d4ff', poi: '#ffb400'}[mType];
-                    let m = L.circleMarker(e.latlng, {color: c, radius: 10, fillOpacity: 0.8}).addTo(map);
-                    markers.push(m);
+                    markers.push(L.circleMarker(e.latlng, {color: c, radius: 10, fillOpacity: 0.8}).addTo(map));
                 });
             }
             setTimeout(() => map.invalidateSize(), 300);
@@ -203,7 +202,7 @@
     function clearMap() { markers.forEach(m => map.removeLayer(m)); markers = []; }
     function closeMod() { document.querySelectorAll('.modal').forEach(m => m.style.display='none'); }
 
-    // --- TRIAGE ---
+    // TRIAGE
     function nextT(s) {
         const b = document.getElementById('triage-box');
         if(s===1) b.innerHTML = `<p>¿RESPIRA?</p><button class="btn-action" onclick="nextT(2)">SÍ</button><button class="btn-action" onclick="tRes('NEGRO')">NO</button>`;
@@ -211,14 +210,14 @@
     }
     function tRes(r) { document.getElementById('triage-box').innerHTML = `<h3>RESULTADO: ${r}</h3><button class="btn-action" onclick="location.reload()">RESET</button>`; }
 
-    // --- NVG ---
+    // NVG
     async function startNVG() {
         try { stream = await navigator.mediaDevices.getUserMedia({video: {facingMode: "environment"}}); document.getElementById('nvg-video').srcObject = stream; }
         catch(e) { alert("CAM_ERR"); }
     }
     function stopNVG() { if(stream) stream.getTracks().forEach(t => t.stop()); closeMod(); }
 
-    // --- COMMS & MORSE ---
+    // STROBE & MORSE
     let strobeInt, strobeActive = false;
     function runStrobe(c) {
         const l = document.getElementById('strobe-layer');
