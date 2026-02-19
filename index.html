@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>NOMD TACTICAL v9.6</title>
+    <title>NOMD TACTICAL v9.7</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
@@ -24,23 +24,16 @@
         .m-head { padding: 15px; border-bottom: 1px solid var(--g); display: flex; justify-content: space-between; background: #000; }
         .m-content { flex-grow: 1; overflow-y: auto; padding: 20px; }
 
-        /* IMÁGENES TÁCTICAS */
-        .img-tactical { 
-            width: 100%; 
-            max-height: 150px; 
-            object-fit: contain; 
-            border: 1px solid var(--g); 
-            margin: 10px 0; 
-            background: #111;
-            filter: brightness(0.8) contrast(1.2);
-        }
+        /* DIAGRAMAS INTERNOS (SVG) */
+        .diag-box { width: 100%; height: 120px; border: 1px solid var(--g); margin: 10px 0; background: #000; display: flex; align-items: center; justify-content: center; padding: 10px; }
+        svg { width: 100%; height: 100%; stroke: var(--g); fill: none; stroke-width: 1.5; }
 
         .btn-action { width: 100%; padding: 15px; background: #000; border: 1px solid var(--g); color: var(--g); margin-bottom: 10px; font-weight: bold; }
         .lib-card { background: #111; border: 1px solid #444; padding: 12px; margin-bottom: 15px; border-left: 4px solid var(--a); }
         #map { width: 100%; height: 100%; background: #000; }
         .map-tools { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 999; display: flex; gap: 5px; width: 95%; }
         .btn-m { flex: 1; padding: 10px 5px; font-size: 9px; background: #000; border: 1px solid var(--g); color: var(--g); font-weight: bold; }
-        textarea, input[type="text"] { width: 100%; background: #000; color: var(--g); border: 1px solid var(--g); padding: 12px; margin-bottom: 10px; }
+        textarea { width: 100%; background: #000; color: var(--g); border: 1px solid var(--g); padding: 12px; }
     </style>
 </head>
 <body>
@@ -49,7 +42,7 @@
 
 <header class="ui-header">
     <div style="display:flex; justify-content: space-between; font-size: 11px;">
-        <span>NOMD v9.6_STRIKE</span>
+        <span>NOMD v9.7_HARDENED</span>
         <span id="timer" style="color:var(--a)">00:00:00</span>
     </div>
     <div id="gps-box">ENLACE ACTIVO...</div>
@@ -67,7 +60,7 @@
 </main>
 
 <div id="m-map" class="modal">
-    <div class="m-head">MAPA_ESTABLE<button onclick="closeMod()">[X]</button></div>
+    <div class="m-head">STRIKE_MAP<button onclick="closeMod()">[X]</button></div>
     <div id="map"></div>
     <div class="map-tools">
         <button class="btn-m" onclick="mType='hostile'" style="border-color:var(--r)">HOSTIL</button>
@@ -85,85 +78,85 @@
 <div id="m-intel" class="modal">
     <div class="m-head">METEO_INTEL<button onclick="closeMod()">[X]</button></div>
     <div class="m-content">
-        <div class="lib-card"><h3>CONDICIONES LOCALES</h3><p>TEMP: 18°C | VIENTO: 12 KM/H NE | HUMEDAD: 65%</p></div>
-        <div class="lib-card" style="border-left-color:var(--b)"><h3>SOLAR/LUNAR</h3><p>SOL: 07:22 | 18:48</p></div>
+        <div class="lib-card"><h3>ESTADO</h3><p>TEMP: 18°C | VIENTO: 12 KM/H | HUM: 65%</p></div>
+        <div class="lib-card" style="border-left-color:var(--b)"><h3>ASTROS</h3><p>SOL: 07:22 - 18:48 | LUNA: 🌘</p></div>
     </div>
 </div>
 
 <div id="m-med" class="modal">
     <div class="m-head">MED_UNIT<button onclick="closeMod()">[X]</button></div>
     <div class="m-content">
-        <div id="triage-box" class="lib-card">
-            <p>¿EL PACIENTE PUEDE CAMINAR?</p>
-            <button class="btn-action" onclick="tRes('VERDE')">SÍ</button>
-            <button class="btn-action" onclick="nextT(1)">NO</button>
+        <div class="lib-card">
+            <h4>1. TORNIQUETE</h4>
+            <div class="diag-box">
+                <svg viewBox="0 0 100 60">
+                    <rect x="20" y="25" width="60" height="10" rx="2" />
+                    <line x1="50" y1="15" x2="50" y2="45" stroke-width="4" />
+                    <path d="M40,15 Q50,5 60,15" />
+                </svg>
+            </div>
+            <p>5-8cm sobre la herida. Girar varilla hasta que no haya pulso distal.</p>
         </div>
         <div class="lib-card">
-            <h4>1. TORNIQUETE TÁCTICO</h4>
-            <img class="img-tactical" src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Tourniquet_application.svg/800px-Tourniquet_application.svg.png" alt="Tourniquet">
-            <p>Aplicar 5-8cm sobre la herida. Girar hasta que el sangrado arterial cese por completo.</p>
-        </div>
-        <div class="lib-card">
-            <h4>2. RCP (COMPRESIONES)</h4>
-            <img class="img-tactical" src="https://scx2.b-cdn.net/gfx/news/2019/1-cpr.jpg" alt="RCP">
-            <p>Compresiones centro del pecho (100/min). 5cm de profundidad.</p>
-        </div>
-        <div class="lib-card">
-            <h4>3. QUEMADURAS</h4>
-            <img class="img-tactical" src="https://images.tcdn.com.br/img/editor/up/652390/Queimaduras.jpg" alt="Quemaduras">
-            <p>Agua corriente fría (no helada). Cubrir con gasa limpia no adherente.</p>
+            <h4>2. RCP</h4>
+            <div class="diag-box">
+                <svg viewBox="0 0 100 60">
+                    <circle cx="50" cy="20" r="10" />
+                    <path d="M30,50 L50,30 L70,50" />
+                    <line x1="50" y1="30" x2="50" y2="10" stroke-dasharray="2" />
+                </svg>
+            </div>
+            <p>Centro del pecho. 100-120 compresiones por minuto. 5cm profundidad.</p>
         </div>
     </div>
 </div>
 
 <div id="m-surv" class="modal">
-    <div class="m-head">SURVIVAL_BIBLE<button onclick="closeMod()">[X]</button></div>
+    <div class="m-head">SURVIVAL<button onclick="closeMod()">[X]</button></div>
     <div class="m-content">
         <div class="lib-card">
-            <h4>REFUGIO "LEAN-TO"</h4>
-            <img class="img-tactical" src="https://www.survival-manual.com/images/shelter/lean-to.gif" alt="Refugio">
-            <p>Una lona o ramas en ángulo de 45° contra el viento. Aísla el suelo con hojarasca.</p>
-        </div>
-        <div class="lib-card">
-            <h4>DESTILACIÓN SOLAR</h4>
-            <img class="img-tactical" src="https://www.oocities.org/yosemite/falls/9200/solar_still.gif" alt="Destilacion">
-            <p>Hoyo + Recipiente + Plástico. La condensación es agua pura.</p>
+            <h4>REFUGIO LEAN-TO</h4>
+            <div class="diag-box">
+                <svg viewBox="0 0 100 60">
+                    <line x1="10" y1="50" x2="90" y2="50" />
+                    <line x1="20" y1="50" x2="70" y2="10" />
+                    <line x1="70" y1="10" x2="70" y2="50" stroke-dasharray="2" />
+                </svg>
+            </div>
+            <p>Estructura a 45° contra el viento. Cubrir con lona o follaje.</p>
         </div>
     </div>
 </div>
 
 <div id="m-knots" class="modal">
-    <div class="m-head">KNOT_GUIDE<button onclick="closeMod()">[X]</button></div>
+    <div class="m-head">KNOTS<button onclick="closeMod()">[X]</button></div>
     <div class="m-content">
         <div class="lib-card">
-            <h4>AS DE GUÍA (BOWLINE)</h4>
-            <img class="img-tactical" src="https://sailing-at-sea.com/wp-content/uploads/2019/12/Bowline-knot.png" alt="As Guia">
-            <p>Lazo fijo que no se corre. Vital para rescates.</p>
-        </div>
-        <div class="lib-card">
-            <h4>NUDO EN OCHO</h4>
-            <img class="img-tactical" src="https://www.climb-guide.com/wp-content/uploads/2019/12/Figure-8-Knot.png" alt="Ocho">
-            <p>Nudo de tope para evitar que la cuerda se salga de un mosquetón o polea.</p>
+            <h4>AS DE GUÍA</h4>
+            <div class="diag-box">
+                <svg viewBox="0 0 100 60">
+                    <path d="M50,10 C30,10 30,40 50,40 C70,40 70,10 50,10 M50,40 L50,55" />
+                    <circle cx="50" cy="25" r="5" stroke-dasharray="2" />
+                </svg>
+            </div>
+            <p>Nudo de rescate que no se cierra. Indispensable.</p>
         </div>
     </div>
 </div>
 
 <div id="m-com" class="modal">
-    <div class="m-head">COMMS_CENTER<button onclick="closeMod()">[X]</button></div>
+    <div class="m-head">COMMS<button onclick="closeMod()">[X]</button></div>
     <div class="m-content">
-        <button class="btn-action" onclick="sendEmergency()">ENVIAR COORDENADAS SMS</button>
-        <button class="btn-action" onclick="runStrobe('white')">ACTIVAR STROBE LIGHT</button>
-        <div class="lib-card" style="border-left-color:var(--r)">
-            <h3>MORSE TRANSMITTER</h3>
-            <input type="text" id="morse-input" placeholder="TEXTO A TRANSMITIR...">
-            <button class="btn-action" onclick="runCustomMorse()">EMITIR PULSOS DE LUZ</button>
-        </div>
+        <button class="btn-action" onclick="sendEmergency()">ENVIAR COORD SMS</button>
+        <button class="btn-action" onclick="runStrobe('white')">STROBE LIGHT</button>
+        <input type="text" id="morse-input" placeholder="TEXTO A MORSE...">
+        <button class="btn-action" onclick="runCustomMorse()">EMITIR LUZ</button>
     </div>
 </div>
 
 <div id="m-note" class="modal">
     <div class="m-head">NOTES<button onclick="closeMod()">[X]</button></div>
-    <div class="m-content"><textarea id="note-area" placeholder="Escriba aquí..."></textarea></div>
+    <div class="m-content"><textarea id="note-area" rows="10"></textarea></div>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -175,7 +168,7 @@
     function initGPS() {
         navigator.geolocation.watchPosition(p => {
             lastPos.lat = p.coords.latitude; lastPos.lon = p.coords.longitude;
-            document.getElementById('gps-box').innerText = `POS: ${lastPos.lat.toFixed(5)} | ${lastPos.lon.toFixed(5)}`;
+            document.getElementById('gps-box').innerText = `LAT: ${lastPos.lat.toFixed(5)} | LON: ${lastPos.lon.toFixed(5)}`;
             if(map && !userMarker) {
                 map.setView([lastPos.lat, lastPos.lon], 16);
                 userMarker = L.circleMarker([lastPos.lat, lastPos.lon], {color: '#00ff41', radius: 8, fillOpacity: 1}).addTo(map);
@@ -202,22 +195,12 @@
     function clearMap() { markers.forEach(m => map.removeLayer(m)); markers = []; }
     function closeMod() { document.querySelectorAll('.modal').forEach(m => m.style.display='none'); }
 
-    // TRIAGE
-    function nextT(s) {
-        const b = document.getElementById('triage-box');
-        if(s===1) b.innerHTML = `<p>¿RESPIRA?</p><button class="btn-action" onclick="nextT(2)">SÍ</button><button class="btn-action" onclick="tRes('NEGRO')">NO</button>`;
-        else if(s===2) b.innerHTML = `<p>PULSO RADIAL:</p><button class="btn-action" onclick="tRes('AMARILLO')">FUERTE</button><button class="btn-action" onclick="tRes('ROJO')">DÉBIL</button>`;
-    }
-    function tRes(r) { document.getElementById('triage-box').innerHTML = `<h3>RESULTADO: ${r}</h3><button class="btn-action" onclick="location.reload()">RESET</button>`; }
-
-    // NVG
     async function startNVG() {
         try { stream = await navigator.mediaDevices.getUserMedia({video: {facingMode: "environment"}}); document.getElementById('nvg-video').srcObject = stream; }
         catch(e) { alert("CAM_ERR"); }
     }
     function stopNVG() { if(stream) stream.getTracks().forEach(t => t.stop()); closeMod(); }
 
-    // STROBE & MORSE
     let strobeInt, strobeActive = false;
     function runStrobe(c) {
         const l = document.getElementById('strobe-layer');
