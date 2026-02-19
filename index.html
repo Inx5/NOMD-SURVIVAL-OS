@@ -3,183 +3,174 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>NOMD TACTICAL v9.1</title>
+    <title>NOMD TACTICAL v9.2</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
-
-        :root { 
-            --g: #00ff41; --r: #ff4141; --a: #ffb400; --b: #00d4ff; 
-            --bg: #080a08; --panel: rgba(15, 20, 15, 0.9); 
-            --shadow: 0 0 15px rgba(0, 255, 65, 0.2);
-        }
-
+        :root { --g: #00ff41; --r: #ff4141; --a: #ffb400; --b: #00d4ff; --bg: #080a08; }
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: 'Share Tech Mono', monospace; }
+        body { background: var(--bg); color: var(--g); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
         
-        body { 
-            background: var(--bg); 
-            background-image: linear-gradient(rgba(0, 255, 65, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 255, 65, 0.03) 1px, transparent 1px);
-            background-size: 30px 30px;
-            color: var(--g); height: 100vh; overflow: hidden; display: flex; flex-direction: column; 
-        }
-
-        /* HEADER */
-        .ui-header { padding: 10px 15px; border-bottom: 2px solid var(--g); background: #000; box-shadow: var(--shadow); z-index: 10; }
-        .top-info { display: flex; justify-content: space-between; font-size: 11px; letter-spacing: 1px; margin-bottom: 5px; }
-        #gps-box { 
-            background: rgba(0, 40, 0, 0.5); padding: 8px; border: 1px solid var(--g); 
-            text-align: center; font-size: 13px; border-radius: 2px;
-        }
-
-        /* GRID */
-        .main-grid { 
-            display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 15px; 
-            overflow-y: auto; flex-grow: 1; align-content: start;
-        }
-
-        .t-card { 
-            background: var(--panel); border: 1px solid rgba(0, 255, 65, 0.3); 
-            display: flex; flex-direction: column; align-items: center; justify-content: center; 
-            border-radius: 4px; min-height: 90px; cursor: pointer;
-        }
+        .ui-header { padding: 12px; border-bottom: 2px solid var(--g); background: #000; z-index: 100; }
+        #gps-box { background: rgba(0,40,0,0.5); padding: 8px; border: 1px solid var(--g); text-align: center; font-size: 12px; margin-top: 8px; }
+        
+        .main-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 15px; overflow-y: auto; flex-grow: 1; }
+        .t-card { background: rgba(15,20,15,0.9); border: 1px solid #333; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 8px; min-height: 90px; }
         .t-card:active { background: var(--g); color: #000; }
-        .t-card span { font-size: 10px; margin-top: 8px; font-weight: bold; color: #fff; }
+        .t-card span { font-size: 10px; margin-top: 6px; font-weight: bold; color: #fff; text-transform: uppercase; }
 
-        /* MODALES */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 1000; flex-direction: column; }
         .m-head { padding: 15px; border-bottom: 1px solid var(--g); display: flex; justify-content: space-between; background: #000; }
-        .m-content { flex-grow: 1; overflow-y: auto; padding: 20px; color: #fff; }
+        .m-content { flex-grow: 1; overflow-y: auto; padding: 20px; }
 
-        /* MAPA */
-        #map { width: 100%; height: 100%; background: #050505; }
-        .map-overlay { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 999; width: 90%; }
+        #map { width: 100%; height: 100%; background: #000; }
+        .map-tools { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 999; display: flex; gap: 5px; width: 95%; }
+        .btn-m { flex: 1; padding: 10px 5px; font-size: 9px; background: #000; border: 1px solid var(--g); color: var(--g); font-weight: bold; }
 
-        /* INPUTS */
-        textarea { width: 100%; height: 200px; background: #000; color: var(--g); border: 1px solid var(--g); padding: 10px; font-size: 14px; }
-        .btn-action { width: 100%; padding: 15px; background: #000; border: 1px solid var(--g); color: var(--g); margin-bottom: 10px; cursor: pointer; }
+        .btn-action { width: 100%; padding: 15px; background: #000; border: 1px solid var(--g); color: var(--g); margin-bottom: 10px; font-weight: bold; }
+        .lib-card { background: #111; border: 1px solid #444; padding: 12px; margin-bottom: 15px; border-left: 4px solid var(--a); }
+        textarea { width: 100%; height: 200px; background: #000; color: var(--g); border: 1px solid var(--g); padding: 10px; }
     </style>
 </head>
 <body>
 
 <header class="ui-header">
-    <div class="top-info"><span>NOMD_v9.1_PROT</span><span id="timer">00:00:00</span></div>
-    <div id="gps-box">BUSCANDO SEÑAL...</div>
+    <div style="display:flex; justify-content: space-between; font-size: 11px;">
+        <span>NOMD SYSTEM v9.2</span>
+        <span id="timer" style="color:var(--a)">00:00:00</span>
+    </div>
+    <div id="gps-box">INICIALIZANDO...</div>
 </header>
 
 <main class="main-grid">
-    <div class="t-card" onclick="openMod('m-map')">📡<span>MAPA TÁCTICO</span></div>
+    <div class="t-card" onclick="openMod('m-map')">🌐<span>MAPA TÁCTICO</span></div>
     <div class="t-card" onclick="openMod('m-nvg')">👁️<span>VISOR NVG</span></div>
-    <div class="t-card" onclick="openMod('m-intel')">⚡<span>INTEL / SYS</span></div>
-    <div class="t-card" onclick="openMod('m-obj')">🎯<span>OBJETIVOS</span></div>
+    <div class="t-card" onclick="openMod('m-intel')">📊<span>INTEL / SYS</span></div>
     <div class="t-card" onclick="openMod('m-med')">⚕️<span>TRIAGE MED</span></div>
+    <div class="t-card" onclick="openMod('m-surv')">📖<span>SURVIVAL</span></div>
     <div class="t-card" onclick="openMod('m-note')">💾<span>BLOC DATOS</span></div>
     <div class="t-card" onclick="openMod('m-knots')">🪢<span>NUDOS R.</span></div>
     <div class="t-card" onclick="openMod('m-com')">📻<span>COMUNICAC.</span></div>
 </main>
 
 <div id="m-map" class="modal">
-    <div class="m-head">STRIKE_MAP<button onclick="closeMod()">[X]</button></div>
+    <div class="m-head">STRIKE_MAP_SAT<button onclick="closeMod()">[X]</button></div>
     <div id="map"></div>
-    <div class="map-overlay">
-        <p style="font-size: 10px; text-align: center; background: rgba(0,0,0,0.7); margin-bottom: 5px;">TOQUE EL MAPA PARA MARCAR OBJETIVO</p>
-        <div style="display:flex; gap:5px;">
-            <button class="btn-action" style="color:var(--r)" onclick="setMode('hostile')">HOSTIL</button>
-            <button class="btn-action" style="color:var(--b)" onclick="setMode('friend')">ALIADO</button>
-        </div>
+    <div class="map-tools">
+        <button class="btn-m" onclick="mType='hostile'" style="border-color:var(--r)">HOSTIL</button>
+        <button class="btn-m" onclick="mType='friend'" style="border-color:var(--b)">ALIADO</button>
+        <button class="btn-m" onclick="mType='poi'" style="border-color:var(--a)">P.O.I</button>
+        <button class="btn-m" onclick="clearMap()" style="border-color:#fff">BORRAR</button>
     </div>
 </div>
 
 <div id="m-nvg" class="modal">
-    <div class="m-head">NVG_ACTIVE<button onclick="stopNVG()">[OFF]</button></div>
+    <div class="m-head">NVG_VISOR<button onclick="stopNVG()">[OFF]</button></div>
     <video id="nvg-video" style="width:100%; height:100%; object-fit:cover; filter: sepia(1) hue-rotate(60deg) brightness(1.6) contrast(2);" autoplay playsinline></video>
 </div>
 
 <div id="m-intel" class="modal">
     <div class="m-head">SYSTEM_INTEL<button onclick="closeMod()">[X]</button></div>
     <div class="m-content">
-        <p>BATTERY: <span id="bat-lv">READING...</span></p>
-        <p>SUNSET: 18:49 | SUNRISE: 07:21</p>
+        <div class="lib-card">
+            <p>BATTERY: <span id="bat-lv">...</span></p>
+            <p>STATE: <span id="bat-st">...</span></p>
+            <p>NETWORK: <span id="net-type">...</span></p>
+        </div>
+        <div class="lib-card" style="border-left-color:var(--a)">
+            <p>SUNRISE: 07:21 | SUNSET: 18:49</p>
+            <p>LUNA: CRECIENTE</p>
+        </div>
     </div>
 </div>
 
 <div id="m-med" class="modal">
     <div class="m-head">TRIAGE_PROTOCOL<button onclick="closeMod()">[X]</button></div>
+    <div class="m-content" id="triage-box">
+        <p>¿EL PACIENTE PUEDE CAMINAR?</p>
+        <button class="btn-action" onclick="tRes('VERDE')">SÍ (LEVE)</button>
+        <button class="btn-action" onclick="nextT(1)">NO</button>
+    </div>
+</div>
+
+<div id="m-surv" class="modal">
+    <div class="m-head">SURVIVAL_BIBLE<button onclick="closeMod()">[X]</button></div>
     <div class="m-content">
-        <button class="btn-action" style="border-color:var(--r); color:var(--r)">ROJO: INMEDIATO</button>
-        <button class="btn-action" style="border-color:var(--a); color:var(--a)">AMARILLO: URGENTE</button>
-        <button class="btn-action" style="border-color:var(--g); color:var(--g)">VERDE: LEVE</button>
+        <div class="lib-card"><h3>FUEGO DAKOTA</h3><p>Hoyo 30cm, túnel lateral para aire. Sin humo.</p></div>
+        <div class="lib-card"><h3>AGUA</h3><p>Destilación solar: Hoyo + plástico + piedra central.</p></div>
     </div>
 </div>
 
 <div id="m-knots" class="modal">
     <div class="m-head">KNOTS_LIB<button onclick="closeMod()">[X]</button></div>
     <div class="m-content">
-        <p>1. AS DE GUÍA</p>
-        <p>2. BALLESTRINQUE</p>
-        <p>3. OCHO DOBLE</p>
-        <p style="margin-top:20px; font-size:10px; color:var(--a)">[CARGANDO IMÁGENES...]</p>
+        <div class="lib-card"><h3>AS DE GUÍA</h3><p>Fijo, rescate, no se corre.</p></div>
+        <div class="lib-card"><h3>BALLESTRINQUE</h3><p>Amarre rápido a poste.</p></div>
+        <div class="lib-card"><h3>OCHO DOBLE</h3><p>Encordamiento de seguridad.</p></div>
     </div>
 </div>
 
 <div id="m-com" class="modal">
     <div class="m-head">COMMS_LINK<button onclick="closeMod()">[X]</button></div>
     <div class="m-content">
-        <p>ALFABETO FONÉTICO:</p>
-        <p>A: ALFA | B: BRAVO | C: CHARLIE</p>
-        <button class="btn-action" style="margin-top:20px;">ENVIAR SOS SMS</button>
+        <button class="btn-action" onclick="sendEmergency()">ENVIAR SOS SMS (COORD)</button>
+        <button class="btn-action" onclick="runStrobe('white')">STROBE LIGHT</button>
+        <div class="lib-card"><h3>MORSE</h3><p>SOS: ... --- ...</p></div>
     </div>
 </div>
 
 <div id="m-note" class="modal">
-    <div class="m-head">NOTES<button onclick="closeMod()">[X]</button></div>
-    <div class="m-content"><textarea id="note-area" placeholder="Escriba aquí..."></textarea></div>
+    <div class="m-head">ENCRYPTED_NOTES<button onclick="closeMod()">[X]</button></div>
+    <div class="m-content">
+        <textarea id="note-area" placeholder="Escriba aquí..."></textarea>
+        <button class="btn-action" style="border-color:var(--r); margin-top:10px;" onclick="document.getElementById('note-area').value=''; alert('WIPED')">PANIC WIPE</button>
+    </div>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    let map, userMarker, stream, lastPos = {lat: 0, lon: 0}, markerMode = 'hostile';
+    let map, userMarker, stream, lastPos = {lat: 0, lon: 0}, mType = 'hostile', markers = [];
 
-    // HUD TIMER
+    // TIMER
     setInterval(() => { document.getElementById('timer').innerText = new Date().toLocaleTimeString(); }, 1000);
 
-    // BATERÍA REAL
-    if(navigator.getBattery) {
-        navigator.getBattery().then(b => {
-            const update = () => { document.getElementById('bat-lv').innerText = Math.round(b.level * 100) + "% " + (b.charging ? "(⚡)" : ""); };
-            update(); b.onlevelchange = update; b.onchargingchange = update;
-        });
+    // INTEL BATERÍA
+    async function getBat() {
+        if(navigator.getBattery) {
+            const b = await navigator.getBattery();
+            const up = () => {
+                document.getElementById('bat-lv').innerText = Math.round(b.level * 100) + "%";
+                document.getElementById('bat-st').innerText = b.charging ? "CHARGING" : "DISCHARGING";
+            };
+            up(); b.onlevelchange = up; b.onchargingchange = up;
+        }
+        document.getElementById('net-type').innerText = navigator.onLine ? "ONLINE" : "OFFLINE";
     }
 
-    // GPS MEJORADO
+    // GPS & MAPA
     function initGPS() {
         navigator.geolocation.watchPosition(p => {
             lastPos.lat = p.coords.latitude;
             lastPos.lon = p.coords.longitude;
             document.getElementById('gps-box').innerText = `LAT: ${lastPos.lat.toFixed(5)} | LON: ${lastPos.lon.toFixed(5)}`;
-            if(map) {
-                if(!userMarker) {
-                    userMarker = L.circleMarker([lastPos.lat, lastPos.lon], {color: '#00ff41', radius: 8, fillOpacity: 1}).addTo(map);
-                    map.setView([lastPos.lat, lastPos.lon], 15);
-                } else { userMarker.setLatLng([lastPos.lat, lastPos.lon]); }
-            }
-        }, (err) => { document.getElementById('gps-box').innerText = "ERROR GPS: " + err.code; }, {enableHighAccuracy: true});
+            if(map && !userMarker) {
+                map.setView([lastPos.lat, lastPos.lon], 16);
+                userMarker = L.circleMarker([lastPos.lat, lastPos.lon], {color: '#00ff41', radius: 8, fillOpacity: 1}).addTo(map);
+            } else if(userMarker) { userMarker.setLatLng([lastPos.lat, lastPos.lon]); }
+        }, null, {enableHighAccuracy: true});
     }
 
-    // MODALES
     function openMod(id) {
         document.getElementById(id).style.display = 'flex';
+        if(id === 'm-intel') getBat();
         if(id === 'm-map') {
             if(!map) {
                 map = L.map('map', {zoomControl: false}).setView([0,0], 2);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{y}/{x}.png', { maxZoom: 19 }).addTo(map);
-                
-                // MARCAR DONDE TÓCAS
-                map.on('click', function(e) {
-                    let color = markerMode === 'hostile' ? '#ff4141' : '#00d4ff';
-                    L.circleMarker([e.latlng.lat, e.latlng.lng], {color: color, radius: 10, fillOpacity: 0.7})
-                     .addTo(map)
-                     .bindPopup(markerMode.toUpperCase())
-                     .openPopup();
+                L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}').addTo(map);
+                map.on('click', e => {
+                    let c = {hostile: '#ff4141', friend: '#00d4ff', poi: '#ffb400'}[mType];
+                    let m = L.circleMarker(e.latlng, {color: c, radius: 10, fillOpacity: 0.8}).addTo(map);
+                    markers.push(m);
                 });
             }
             setTimeout(() => map.invalidateSize(), 300);
@@ -187,20 +178,28 @@
         if(id === 'm-nvg') startNVG();
     }
 
+    function clearMap() { markers.forEach(m => map.removeLayer(m)); markers = []; }
+
     function closeMod() { document.querySelectorAll('.modal').forEach(m => m.style.display='none'); }
 
-    function setMode(m) { markerMode = m; alert("MODO: " + m.toUpperCase()); }
-
-    async function startNVG() {
-        try {
-            stream = await navigator.mediaDevices.getUserMedia({video: {facingMode: "environment"}});
-            document.getElementById('nvg-video').srcObject = stream;
-        } catch(e) { alert("CAM_ERR"); }
+    // TRIAGE LOGIC
+    function nextT(s) {
+        const b = document.getElementById('triage-box');
+        if(s===1) b.innerHTML = `<p>¿RESPIRA?</p><button class="btn-action" onclick="nextT(2)">SÍ</button><button class="btn-action" onclick="tRes('NEGRO')">NO</button>`;
+        else if(s===2) b.innerHTML = `<p>PULSO RADIAL:</p><button class="btn-action" onclick="tRes('AMARILLO')">FUERTE</button><button class="btn-action" onclick="tRes('ROJO')">DÉBIL/AUSENTE</button>`;
     }
+    function tRes(r) { document.getElementById('triage-box').innerHTML = `<h2 style="color:var(--g)">RESULTADO: ${r}</h2><button class="btn-action" onclick="location.reload()">REINICIAR</button>`; }
 
-    function stopNVG() {
-        if(stream) stream.getTracks().forEach(t => t.stop());
-        closeMod();
+    // NVG
+    async function startNVG() {
+        try { stream = await navigator.mediaDevices.getUserMedia({video: {facingMode: "environment"}}); document.getElementById('nvg-video').srcObject = stream; }
+        catch(e) { alert("ERROR CÁMARA"); }
+    }
+    function stopNVG() { if(stream) stream.getTracks().forEach(t => t.stop()); closeMod(); }
+
+    // COMMS
+    function sendEmergency() {
+        window.location.href = `sms:?body=EMERGENCIA. Coords: ${lastPos.lat},${lastPos.lon}`;
     }
 
     window.onload = initGPS;
