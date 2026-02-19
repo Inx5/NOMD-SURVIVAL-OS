@@ -3,26 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>NOMD TACTICAL v6.2</title>
+    <title>NOMD TACTICAL v7.0</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         :root { --g: #00ff41; --r: #ff4141; --a: #ffb400; --bg: #050505; --panel: rgba(20, 20, 20, 0.95); }
-        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: 'Courier New', monospace; }
-        body { background: var(--bg); background-image: radial-gradient(circle, #1a1a1a 1px, transparent 1px); background-size: 20px 20px; color: var(--g); height: 100vh; overflow: hidden; }
-        #strobe-layer { position: fixed; top:0; left:0; width:100%; height:100%; z-index: 9999; pointer-events: none; opacity: 0; transition: opacity 0.05s; }
+        .night-mode { --g: #ff0000; --a: #ff0000; --bg: #1a0000; } /* Modo Visión Nocturna */
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: 'Courier New', monospace; transition: background 0.3s; }
+        body { background: var(--bg); color: var(--g); height: 100vh; overflow: hidden; }
+        
+        #strobe-layer { position: fixed; top:0; left:0; width:100%; height:100%; z-index: 9999; pointer-events: none; opacity: 0; }
         #app-shell { position: relative; height: 100%; display: flex; flex-direction: column; z-index: 10; }
+        
         .ui-header { padding: 15px; border-bottom: 2px solid var(--g); background: #000; }
-        #gps-box { background: #000; padding: 8px; border: 1px solid var(--g); text-align: center; font-size: 11px; color: var(--a); border-radius: 4px; box-shadow: 0 0 10px rgba(255,180,0,0.2); }
+        #gps-box { background: #000; padding: 8px; border: 1px solid var(--g); text-align: center; font-size: 11px; color: var(--a); border-radius: 4px; }
+        
         .main-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 15px; flex-grow: 1; }
-        .t-card { background: var(--panel); border: 1px solid #333; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 8px; backdrop-filter: blur(5px); }
-        .t-card span { font-size: 10px; margin-top: 8px; font-weight: bold; letter-spacing: 1px; }
+        .t-card { background: var(--panel); border: 1px solid #333; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 8px; }
+        .t-card span { font-size: 10px; margin-top: 8px; font-weight: bold; }
+
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 1000; flex-direction: column; }
         .m-head { padding: 15px; border-bottom: 1px solid var(--g); display: flex; justify-content: space-between; align-items: center; background: #000; }
         .m-content { flex-grow: 1; overflow-y: auto; padding: 15px; }
+
         .btn-action { width: 100%; padding: 15px; background: #000; border: 1px solid var(--g); color: var(--g); margin-bottom: 10px; font-weight: bold; border-radius: 4px; }
         .lib-card { background: #111; border: 1px solid #444; padding: 12px; margin-bottom: 12px; border-left: 4px solid var(--a); }
-        #map { width: 100%; height: 100%; } /* Mapa ahora a color */
-        input, select { background: #000; border: 1px solid var(--g); color: var(--g); padding: 12px; width: 100%; margin: 10px 0; font-size: 16px; }
+        
+        #map { width: 100%; height: 100%; }
+        input, select { background: #000; border: 1px solid var(--g); color: var(--g); padding: 12px; width: 100%; margin: 10px 0; }
+        
+        .knot-box { font-size: 12px; line-height: 1.4; color: #fff; background: #222; padding: 10px; border-radius: 5px; margin-bottom: 10px; }
+        #breadcrumb-list { font-size: 10px; color: var(--a); }
     </style>
 </head>
 <body>
@@ -31,176 +42,166 @@
 
 <div id="app-shell">
     <div class="ui-header">
-        <div style="display:flex; justify-content: space-between; font-size: 9px; margin-bottom: 5px; opacity:0.6;">
-            <span>NOMD TACTICAL v6.2 // LIVE</span><span id="timer">00:00</span>
+        <div style="display:flex; justify-content: space-between; font-size: 9px; margin-bottom: 5px;">
+            <span>NOMD v7.0 FRONTIER</span>
+            <button onclick="toggleNight()" style="background:none; border:1px solid var(--r); color:var(--r); padding:2px 5px; font-size:8px;">MODO RED</button>
+            <span id="timer">00:00</span>
         </div>
-        <div id="gps-box" onclick="forceGPS()">ADQUIRIENDO POSICIÓN...</div>
+        <div id="gps-box" onclick="forceGPS()">ADQUIRIENDO SATÉLITES...</div>
     </div>
 
     <div class="main-grid">
         <div class="t-card" onclick="openMod('m-map')">🌐<span>MAPA</span></div>
-        <div class="t-card" onclick="openMod('m-med')">⚕️<span>MED-TRIAGE</span></div>
         <div class="t-card" onclick="openMod('m-com')">📡<span>SEÑALES</span></div>
-        <div class="t-card" onclick="openMod('m-lib')">📖<span>MANUALS</span></div>
         <div class="t-card" onclick="openMod('m-tool')">🛠️<span>TOOLS</span></div>
-        <div class="t-card" onclick="generateQR()">🆔<span>EXTRACT QR</span></div>
+        <div class="t-card" onclick="openMod('m-lib')">📖<span>INTEL</span></div>
+        <div class="t-card" onclick="openMod('m-med')">⚕️<span>TRIAGE</span></div>
+        <div class="t-card" onclick="saveBreadcrumb()">📍<span>LOG POS</span></div>
     </div>
 </div>
 
-<div id="m-map" class="modal"><div class="m-head"><span>MAPA TERRESTRE</span><button onclick="closeMod()">[CERRAR]</button></div><div id="map"></div></div>
+<div id="m-map" class="modal"><div class="m-head"><span>MAPA COLOR</span><button onclick="closeMod()">[X]</button></div><div id="map"></div></div>
 
 <div id="m-com" class="modal">
-    <div class="m-head"><span>BEACON & MORSE</span><button onclick="closeMod()">[X]</button></div>
+    <div class="m-head"><span>COMMUNICATION</span><button onclick="closeMod()">[X]</button></div>
     <div class="m-content">
         <button class="btn-action" onclick="runStrobe('white')">STROBE BLANCO</button>
-        <button class="btn-action" onclick="runStrobe('red')" style="color:red; border-color:red;">STROBE ROJO</button>
-        <input type="text" id="morse-input" placeholder="TEXTO A MORSE...">
-        <button class="btn-action" onclick="runCustomMorse()">ENVIAR SEÑAL LUZ</button>
+        <div class="lib-card">
+            <h3>☀️ HELIÓGRAFO (ESPEJO)</h3>
+            <p>1. Refleja sol en tu mano.<br>2. Mira por el agujero hacia el objetivo.<br>3. Alinea el punto brillante con el objetivo.</p>
+        </div>
+        <input type="text" id="morse-input" placeholder="MENSAJE MORSE...">
+        <button class="btn-action" onclick="runCustomMorse()">TRANSMITIR</button>
     </div>
 </div>
 
 <div id="m-tool" class="modal">
-    <div class="m-head"><span>HERRAMIENTAS</span><button onclick="closeMod()">[X]</button></div>
-    <div class="m-content">
-        <div class="lib-card" style="border-left-color: #00aeef;">
-            <h3>💧 CALCULADORA AGUA</h3>
-            <select id="h2o-temp">
-                <option value="4">Extremo (>35°C)</option>
-                <option value="2.5" selected>Calor (25-35°C)</option>
-                <option value="1.5">Templado (<25°C)</option>
-            </select>
-            <button class="btn-action" onclick="calcH2O()">CALCULAR LITROS/DÍA</button>
-            <p id="h2o-res" style="text-align:center; font-size:24px; color:white;">-- L</p>
-        </div>
-        
-        <div class="lib-card" style="border-left-color: var(--g);">
-            <h3>⚡ FLASH-TO-BANG</h3>
-            <button class="btn-action" id="dist-btn" onclick="calcDist()">INICIAR CAPTURA</button>
-            <p id="dist-res" style="text-align:center; font-size:24px; color:white;">0 m</p>
-            <p style="font-size:9px; color:#888; text-align:center;">Pulsa al ver el flash, pulsa al oír el trueno.</p>
-        </div>
-    </div>
-</div>
-
-<div id="m-med" class="modal">
-    <div class="m-head"><span>MEDICAL TRIAGE</span><button onclick="closeMod()">[X]</button></div>
+    <div class="m-head"><span>TOOLS & LOGS</span><button onclick="closeMod()">[X]</button></div>
     <div class="m-content">
         <div class="lib-card">
-            <h3>🩸 PROTOCOLO M.A.R.C.H</h3>
-            <p><b>M</b>: Hemorragia Masiva</p>
-            <p><b>A</b>: Vía Aérea</p>
-            <p><b>R</b>: Respiración (Torax)</p>
-            <p><b>C</b>: Circulación (Shock)</p>
-            <p><b>H</b>: Hipotermia / Heridas</p>
+            <h3>📍 CAJA NEGRA (POSICIONES)</h3>
+            <div id="breadcrumb-list">Sin registros...</div>
+            <button class="btn-action" onclick="clearBreadcrumbs()" style="font-size:10px; margin-top:10px; padding:5px; border-color:var(--r); color:var(--r);">LIMPIAR LOG</button>
         </div>
-        <div class="lib-card" style="border-left-color: var(--r);">
-            <h3>🩹 TORNIQUETE</h3>
-            <p>1. 5-8cm sobre la herida.<br>2. No sobre articulaciones.<br>3. Apretar hasta que cese el sangrado.<br>4. Marcar hora de aplicación.</p>
+        <div class="lib-card">
+            <h3>⚡ FLASH-TO-BANG</h3>
+            <button class="btn-action" id="dist-btn" onclick="calcDist()">INICIAR CAPTURA</button>
+            <p id="dist-res" style="text-align:center;">0 m</p>
+        </div>
+        <div class="lib-card">
+            <h3>💧 HIDRATACIÓN</h3>
+            <select id="h2o-temp"><option value="4">Calor Extremo</option><option value="2" selected>Normal</option></select>
+            <button class="btn-action" onclick="calcH2O()">CALCULAR</button>
+            <p id="h2o-res" style="text-align:center;">-- L</p>
         </div>
     </div>
 </div>
 
 <div id="m-lib" class="modal">
-    <div class="m-head"><span>INTEL LIBRARY</span><button onclick="closeMod()">[X]</button></div>
+    <div class="m-head"><span>SURVIVAL INTEL</span><button onclick="closeMod()">[X]</button></div>
     <div class="m-content">
         <div class="lib-card">
-            <h3>✈️ SEÑALES RESCATE</h3>
-            <p><b>V</b>: Necesito asistencia</p>
-            <p><b>X</b>: Asistencia médica urgente</p>
-            <p><b>Y</b>: Sí (Afirmativo)</p>
-            <p><b>N</b>: No (Negativo)</p>
+            <h3>🪢 AS DE GUÍA (RESCATE)</h3>
+            <div class="knot-box">1. Haz un lazo (la cueva).<br>2. La cuerda (serpiente) sale de la cueva.<br>3. Rodea el árbol (firme) y vuelve a entrar.</div>
         </div>
-        
-        <div class="lib-card" style="border-left-color: var(--g);">
-            <h3>🧭 ORIENTACIÓN</h3>
-            <p>En el hemisferio norte, apunta la aguja horaria al sol. El Sur está a medio camino entre la aguja y las 12.</p>
+        <div class="lib-card">
+            <h3>🪢 BALLESTRINQUE</h3>
+            <div class="knot-box">Pasa la cuerda sobre el poste, crúzala formando una X, y mete el extremo por debajo del cruce.</div>
+        </div>
+        <div class="lib-card">
+            <h3>✈️ SEÑALES TIERRA-AIRE</h3>
+            <p><b>V</b>: Ayuda | <b>X</b>: Médico | <b>Y</b>: Sí | <b>N</b>: No</p>
         </div>
     </div>
 </div>
 
-<div id="m-qr" class="modal"><div class="m-head"><span>EXTRACT QR</span><button onclick="closeMod()">[X]</button></div><div id="qr-root" style="text-align:center; padding:20px;"></div></div>
+<div id="m-med" class="modal"><div class="m-head"><span>TRIAGE</span><button onclick="closeMod()">[X]</button></div><div class="m-content"><div class="lib-card"><h3>🩸 MARCH</h3><p>M: Masivo | A: Aérea | R: Respiración | C: Circulación | H: Hipotermia</p></div></div></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    let map, userMarker;
-    let lastPos = { lat: 40.41, lon: -3.70 };
+    let map, userMarker, breadcrumbs = [];
+    let lastPos = { lat: 0, lon: 0 };
     let strobeInt, strobeActive = false;
 
+    // --- MODO VISIÓN NOCTURNA ---
+    function toggleNight() { document.body.classList.toggle('night-mode'); }
+
+    // --- CAJA NEGRA (BREADCRUMBS) ---
+    function saveBreadcrumb() {
+        const time = new Date().toLocaleTimeString().slice(0,5);
+        const entry = `[${time}] ${lastPos.lat}, ${lastPos.lon}`;
+        breadcrumbs.unshift(entry);
+        updateBreadcrumbUI();
+        alert("Posición guardada en el log");
+    }
+    function updateBreadcrumbUI() {
+        document.getElementById('breadcrumb-list').innerHTML = breadcrumbs.slice(0,5).join('<br>');
+    }
+    function clearBreadcrumbs() { breadcrumbs = []; updateBreadcrumbUI(); }
+
+    // --- GPS Y MAPA ---
     function forceGPS() {
         navigator.geolocation.getCurrentPosition(p => {
-            lastPos.lat = p.coords.latitude.toFixed(6);
-            lastPos.lon = p.coords.longitude.toFixed(6);
-            document.getElementById('gps-box').innerText = `POS: ${lastPos.lat} , ${lastPos.lon}`;
+            lastPos.lat = p.coords.latitude.toFixed(5);
+            lastPos.lon = p.coords.longitude.toFixed(5);
+            document.getElementById('gps-box').innerText = `POS: ${lastPos.lat} | ${lastPos.lon}`;
             if(map) {
                 map.setView([lastPos.lat, lastPos.lon], 16);
                 if(userMarker) map.removeLayer(userMarker);
-                userMarker = L.circleMarker([lastPos.lat, lastPos.lon], {color: '#00ff41', radius: 10}).addTo(map);
+                userMarker = L.circleMarker([lastPos.lat, lastPos.lon], {color: '#00ff41', radius: 8}).addTo(map);
             }
         }, null, {enableHighAccuracy:true});
-    }
-
-    function runStrobe(color) {
-        const layer = document.getElementById('strobe-layer');
-        if(strobeActive) {
-            clearInterval(strobeInt); strobeActive = false; layer.style.opacity = "0";
-        } else {
-            strobeActive = true; layer.style.background = color;
-            strobeInt = setInterval(() => { layer.style.opacity = (layer.style.opacity === "1") ? "0" : "1"; }, 60);
-        }
-    }
-
-    const MORSE_CODE = {'A': '.-', 'B': '-...', 'C': '-.-.', 'D': '-..', 'E': '.', 'F': '..-.', 'G': '--.', 'H': '....', 'I': '..', 'J': '.---', 'K': '-.-', 'L': '.-..', 'M': '--', 'N': '-.', 'O': '---', 'P': '.--.', 'Q': '--.-', 'R': '.-.', 'S': '...', 'T': '-', 'U': '..-', 'V': '...-', 'W': '.--', 'X': '-..-', 'Y': '-.--', 'Z': '--..', '1': '.----', '2': '..---', '3': '...--', '4': '....-', '5': '.....', '6': '-....', '7': '--...', '8': '---..', '9': '----.', '0': '-----', ' ': '/'};
-
-    async function runCustomMorse() {
-        const input = document.getElementById('morse-input').value.toUpperCase();
-        const layer = document.getElementById('strobe-layer');
-        layer.style.background = "white"; strobeActive = true;
-        for (let char of input) {
-            let code = MORSE_CODE[char]; if (!code) continue;
-            for (let symbol of code) {
-                layer.style.opacity = "1"; await new Promise(r => setTimeout(r, symbol === '.' ? 200 : 600));
-                layer.style.opacity = "0"; await new Promise(r => setTimeout(r, 200));
-            }
-            await new Promise(r => setTimeout(r, 400));
-        }
-        strobeActive = false; layer.style.opacity = "0";
-    }
-
-    function calcH2O() {
-        const factor = parseFloat(document.getElementById('h2o-temp').value);
-        document.getElementById('h2o-res').innerText = (factor * 2).toFixed(1) + " L";
-    }
-
-    let dTime, dRun = false;
-    function calcDist() {
-        const btn = document.getElementById('dist-btn');
-        if(!dRun){ dTime = Date.now(); dRun = true; btn.innerText = "ESPERANDO SONIDO..."; }
-        else {
-            let m = Math.round(((Date.now() - dTime)/1000) * 343);
-            document.getElementById('dist-res').innerText = m + " m";
-            dRun = false; btn.innerText = "INICIAR CAPTURA";
-        }
-    }
-
-    function generateQR() {
-        openMod('m-qr');
-        const mapsLink = `https://www.google.com/maps?q=${lastPos.lat},${lastPos.lon}`;
-        const url = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(mapsLink)}`;
-        document.getElementById('qr-root').innerHTML = `<img src="${url}" style="width:180px; border:10px solid white;"><p style="color:#ffb400; font-size:10px; margin-top:10px;">ESCANEAME PARA POSICIÓN</p>`;
     }
 
     function openMod(id) {
         document.getElementById(id).style.display = 'flex';
         if(id === 'm-map') {
             if(!map) {
-                map = L.map('map', {zoomControl: false}).setView([lastPos.lat, lastPos.lon], 15);
-                // MAPA TERRESTRE A COLOR
+                map = L.map('map', {zoomControl: false}).setView([40, -3], 15);
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
             }
             setTimeout(() => { map.invalidateSize(); forceGPS(); }, 400);
         }
     }
     function closeMod() { document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); }
+
+    // --- FUNCIONES EXTRA ---
+    function runStrobe(c) {
+        const l = document.getElementById('strobe-layer');
+        if(strobeActive){ clearInterval(strobeInt); strobeActive = false; l.style.opacity = "0"; }
+        else { strobeActive = true; l.style.background = c; strobeInt = setInterval(()=>l.style.opacity = l.style.opacity==="1"?"0":"1", 60); }
+    }
+
+    function calcH2O() {
+        const f = parseFloat(document.getElementById('h2o-temp').value);
+        document.getElementById('h2o-res').innerText = (f * 2.5).toFixed(1) + " LITROS";
+    }
+
+    let dTime, dRun = false;
+    function calcDist() {
+        const b = document.getElementById('dist-btn');
+        if(!dRun){ dTime = Date.now(); dRun = true; b.innerText = "PARAR AL OÍR..."; }
+        else {
+            let m = Math.round(((Date.now() - dTime)/1000) * 343);
+            document.getElementById('dist-res').innerText = m + " m";
+            dRun = false; b.innerText = "INICIAR CAPTURA";
+        }
+    }
+
+    const MORSE = {'A': '.-', 'B': '-...', 'C': '-.-.', 'D': '-..', 'E': '.', 'F': '..-.', 'G': '--.', 'H': '....', 'I': '..', 'J': '.---', 'K': '-.-', 'L': '.-..', 'M': '--', 'N': '-.', 'O': '---', 'P': '.--.', 'Q': '--.-', 'R': '.-.', 'S': '...', 'T': '-', 'U': '..-', 'V': '...-', 'W': '.--', 'X': '-..-', 'Y': '-.--', 'Z': '--..', ' ': '/'};
+    async function runCustomMorse() {
+        const text = document.getElementById('morse-input').value.toUpperCase();
+        const l = document.getElementById('strobe-layer'); l.style.background = "white"; strobeActive = true;
+        for(let char of text){
+            let code = MORSE[char]; if(!code) continue;
+            for(let s of code){
+                l.style.opacity = "1"; await new Promise(r=>setTimeout(r, s==='.'?200:600));
+                l.style.opacity = "0"; await new Promise(r=>setTimeout(r, 200));
+            }
+            await new Promise(r=>setTimeout(r, 400));
+        }
+        strobeActive = false;
+    }
 
     window.onload = () => {
         setInterval(() => { document.getElementById('timer').innerText = new Date().toLocaleTimeString().slice(0,5); }, 1000);
