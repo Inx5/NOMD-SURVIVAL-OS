@@ -1,116 +1,128 @@
-// --- CONFIGURACIÓN ---
+// --- CONFIG Y ESTADO ---
 let map, userMarker;
-let strobeActive = false;
-let strobeInterval;
-let victims = JSON.parse(localStorage.getItem('nomd_victims')) || [];
+let lastPos = { lat: 0, lon: 0 };
+let strobeInt, strobeActive = false;
+let victims = JSON.parse(localStorage.getItem('nomd_v4_victims')) || [];
 
-function log(msg) {
-    const t = document.getElementById('terminal');
-    t.innerHTML += `<div>> ${msg}</div>`;
-    t.scrollTop = t.scrollHeight;
+function log(msg) { 
+    document.getElementById('terminal').innerHTML = `> ${msg}`; 
 }
 
-// --- GPS ENGINE (CORREGIDO PARA IPHONE) ---
+// --- GPS REAL ---
 function forceGPS() {
-    log("SOLICITANDO ACCESO GPS...");
-    navigator.geolocation.getCurrentPosition(
-        p => {
-            const lat = p.coords.latitude.toFixed(5);
-            const lon = p.coords.longitude.toFixed(5);
-            document.getElementById('gps-box').innerText = `${lat}, ${lon}`;
-            document.getElementById('gps-box').style.borderColor = "var(--a)";
-            log("GPS LOCK: EXITOSO");
-            if (map) updateMap(p.coords.latitude, p.coords.longitude);
-        },
-        e => log("ERROR GPS: " + e.message),
-        { enableHighAccuracy: true, timeout: 10000 }
-    );
+    navigator.geolocation.getCurrentPosition(p => {
+        lastPos.lat = p.coords.latitude.toFixed(5);
+        lastPos.lon = p.coords.longitude.toFixed(5);
+        document.getElementById('gps-box').innerText = `LAT: ${lastPos.lat} | LON: ${lastPos.lon}`;
+        if(map) {
+            map.setView([lastPos.lat, lastPos.lon], 16);
+            if(userMarker) map.removeLayer(userMarker);
+            userMarker = L.marker([lastPos.lat, lastPos.lon]).addTo(map);
+        }
+    }, null, {enableHighAccuracy:true});
 }
 
-function updateMap(lat, lon) {
-    if (!map) return;
-    map.setView([lat, lon], 16);
-    if (userMarker) map.removeLayer(userMarker);
-    userMarker = L.marker([lat, lon]).addTo(map).bindPopup("MI POSICIÓN").openPopup();
-}
-
-function initMap() {
-    if (!map) {
-        map = L.map('map', { zoomControl: false }).setView([40.416, -3.703], 5);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
+// --- MOTOR DE SEÑALES (FIXED PARA IPHONE) ---
+function runStrobe(color) {
+    const layer = document.getElementById('strobe-layer');
+    if(strobeActive) {
+        clearInterval(strobeInt);
+        strobeActive = false;
+        layer.style.opacity = 0;
+        log("STROBE OFF");
+    } else {
+        strobeActive = true;
+        layer.style.background = color;
+        layer.style.opacity = 1;
+        layer.style.pointerEvents = "auto"; // Bloquea toques accidentales mientras parpadea
+        log(`STROBE ${color.toUpperCase()} ON`);
+        strobeInt = setInterval(() => {
+            layer.style.display = (layer.style.display === 'none') ? 'block' : 'none';
+        }, 70);
     }
-    setTimeout(() => {
-        map.invalidateSize();
-        forceGPS();
-    }, 400);
 }
 
-// --- TRIAGE PRO (CAJA NEGRA) ---
+async function runMorse() {
+    log("MORSE SOS INICIADO");
+    const sos = [200,200,200, 600,600,600, 200,200,200];
+    const layer = document.getElementById('strobe-layer');
+    layer.style.background = "white";
+    layer.style.pointerEvents = "auto";
+    
+    for(let ms of sos) {
+        layer.style.opacity = 1;
+        layer.style.display = "block";
+        await new Promise(r => setTimeout(r, ms));
+        layer.style.display = "none";
+        await new Promise(r => setTimeout(r, 200));
+    }
+    layer.style.pointerEvents = "none";
+    log("MORSE SOS FIN");
+}
+
+// --- HERRAMIENTA DISTANCIA ---
+let distTime, distRunning = false;
+function calcDist() {
+    const btn = document.getElementById('dist-btn');
+    const res = document.getElementById('dist-res');
+    if(!distRunning) {
+        distTime = Date.now();
+        distRunning = true;
+        btn.innerText = "STOP AL OIR";
+        btn.style.borderColor = "red";
+    } else {
+        let diff = (Date.now() - distTime) / 1000;
+        let meters = Math.round(diff * 343); // Velocidad sonido
+        res.innerText = meters + " m";
+        distRunning = false;
+        btn.innerText = "START CRONO";
+        btn.style.borderColor = "var(--g)";
+    }
+}
+
+// --- GENERADOR QR (SIN LIBRERÍAS EXTERNAS PARA OFFLINE) ---
+function generateQR() {
+    openMod('m-qr');
+    const data = `SOS-NOMD|LAT:${lastPos.lat}|LON:${lastPos.lon}|TIME:${new Date().getTime()}`;
+    const url = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(data)}&color=0-0-0&bgcolor=255-255-255`;
+    document.getElementById('qrcode').innerHTML = `<img src="${url}" style="width:100%">`;
+    document.getElementById('qr-data').innerText = data;
+}
+
+// --- TRIAGE ---
 function addVictim(status) {
-    const v = {
-        id: Math.floor(Math.random() * 999),
-        time: new Date().toLocaleTimeString().slice(0,5),
-        status: status
-    };
-    victims.unshift(v);
-    if (victims.length > 8) victims.pop();
-    localStorage.setItem('nomd_victims', JSON.stringify(victims));
+    victims.unshift({id: Math.floor(Math.random()*99), status, time: new Date().toLocaleTimeString().slice(0,5)});
+    if(victims.length > 5) victims.pop();
+    localStorage.setItem('nomd_v4_victims', JSON.stringify(victims));
     renderVictims();
-    log(`VÍCTIMA ${v.id} REGISTRADA: ${status}`);
 }
 
 function renderVictims() {
-    const container = document.getElementById('victim-log');
-    if (victims.length === 0) { container.innerHTML = "No hay registros."; return; }
-    container.innerHTML = victims.map(v => `
-        <div class="hist-item">
-            <span>ID:${v.id} [${v.time}]</span>
-            <b style="color:${v.status === 'ROJO' ? 'red' : (v.status === 'AMARILLO' ? 'yellow' : 'lime')}">${v.status}</b>
-        </div>
-    `).join('');
+    const logEl = document.getElementById('victim-log');
+    logEl.innerHTML = victims.map(v => `<div>ID:${v.id} [${v.time}] - <b style="color:${v.status=='ROJO'?'red':'lime'}">${v.status}</b></div>`).join('');
 }
 
-function clearLog() {
-    victims = [];
-    localStorage.removeItem('nomd_victims');
-    renderVictims();
-    log("CAJA NEGRA BORRADA");
-}
-
-// --- STROBE ENGINE (TOTAL) ---
-function toggleStrobe(color) {
-    const shell = document.getElementById('app-shell');
-    if (strobeActive) {
-        clearInterval(strobeInterval);
-        strobeActive = false;
-        shell.style.background = "var(--bg)";
-        log("STROBE DETENIDO");
-    } else {
-        strobeActive = true;
-        log(`STROBE ${color.toUpperCase()} ACTIVO`);
-        strobeInterval = setInterval(() => {
-            shell.style.background = (shell.style.background === 'black' || shell.style.background === '') ? color : 'black';
-        }, 80);
-    }
-}
-
-// --- SISTEMA DE MODALES ---
+// --- MODALES ---
 function openMod(id) {
     document.getElementById(id).style.display = 'flex';
-    if (id === 'm-map') initMap();
-    if (id === 'm-med') renderVictims();
+    if(id === 'm-map') {
+        if(!map) {
+            map = L.map('map', {zoomControl: false}).setView([0,0], 2);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
+        }
+        setTimeout(() => { map.invalidateSize(); forceGPS(); }, 300);
+    }
 }
 
 function closeMod() {
     document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
-    if (strobeActive) toggleStrobe(); // Apagar strobe al salir
+    if(strobeActive) runStrobe('white');
 }
 
-// --- INICIO ---
 window.onload = () => {
     setInterval(() => {
-        const d = new Date();
-        document.getElementById('timer').innerText = d.getHours().toString().padStart(2,'0') + ":" + d.getMinutes().toString().padStart(2,'0');
+        document.getElementById('timer').innerText = new Date().toLocaleTimeString().slice(0,5);
     }, 1000);
     forceGPS();
+    renderVictims();
 };
