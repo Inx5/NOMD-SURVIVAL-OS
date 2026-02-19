@@ -1,163 +1,100 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>NOMD TACTICAL v5.0</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <style>
-        :root { --g: #00ff41; --r: #ff4141; --a: #ffb400; --bg: #050505; --panel: rgba(20, 20, 20, 0.85); }
-        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: 'Courier New', monospace; }
-        
-        body { 
-            background: var(--bg); 
-            background-image: radial-gradient(circle, #1a1a1a 1px, transparent 1px);
-            background-size: 20px 20px;
-            color: var(--g); height: 100vh; overflow: hidden; 
+let map, userMarker;
+let lastPos = { lat: 0, lon: 0 };
+let strobeInt, strobeActive = false;
+
+// --- GPS CORE ---
+function forceGPS() {
+    navigator.geolocation.getCurrentPosition(p => {
+        lastPos.lat = p.coords.latitude.toFixed(6);
+        lastPos.lon = p.coords.longitude.toFixed(6);
+        document.getElementById('gps-box').innerText = `COORD: ${lastPos.lat} , ${lastPos.lon}`;
+        if(map) {
+            map.setView([lastPos.lat, lastPos.lon], 16);
+            if(userMarker) map.removeLayer(userMarker);
+            userMarker = L.circleMarker([lastPos.lat, lastPos.lon], {color: '#00ff41', radius: 10}).addTo(map);
         }
+    }, null, {enableHighAccuracy:true});
+}
 
-        /* Capa Strobe Refactorizada */
-        #strobe-layer { 
-            position: fixed; top:0; left:0; width:100%; height:100%; 
-            z-index: 9999; pointer-events: none; opacity: 0;
-            transition: opacity 0.05s;
+// --- MOTOR DE SEÑALES v6 ---
+function runStrobe(color) {
+    const layer = document.getElementById('strobe-layer');
+    if(strobeActive) {
+        clearInterval(strobeInt);
+        strobeActive = false;
+        layer.style.opacity = "0";
+    } else {
+        strobeActive = true;
+        layer.style.background = color;
+        strobeInt = setInterval(() => {
+            layer.style.opacity = (layer.style.opacity === "1") ? "0" : "1";
+        }, 60);
+    }
+}
+
+// MORSE DICTIONARY
+const MORSE_CODE = {'A': '.-', 'B': '-...', 'C': '-.-.', 'D': '-..', 'E': '.', 'F': '..-.', 'G': '--.', 'H': '....', 'I': '..', 'J': '.---', 'K': '-.-', 'L': '.-..', 'M': '--', 'N': '-.', 'O': '---', 'P': '.--.', 'Q': '--.-', 'R': '.-.', 'S': '...', 'T': '-', 'U': '..-', 'V': '...-', 'W': '.--', 'X': '-..-', 'Y': '-.--', 'Z': '--..', '1': '.----', '2': '..---', '3': '...--', '4': '....-', '5': '.....', '6': '-....', '7': '--...', '8': '---..', '9': '----.', '0': '-----', ' ': '/'};
+
+async function runCustomMorse() {
+    const input = document.getElementById('morse-input').value.toUpperCase();
+    const layer = document.getElementById('strobe-layer');
+    layer.style.background = "white";
+    strobeActive = true;
+
+    for (let char of input) {
+        let code = MORSE_CODE[char];
+        if (!code) continue;
+        for (let symbol of code) {
+            layer.style.opacity = "1";
+            await new Promise(r => setTimeout(r, symbol === '.' ? 200 : 600));
+            layer.style.opacity = "0";
+            await new Promise(r => setTimeout(r, 200));
         }
+        await new Promise(r => setTimeout(r, 400)); // Espacio entre letras
+    }
+    strobeActive = false;
+}
 
-        #app-shell { position: relative; height: 100%; display: flex; flex-direction: column; z-index: 10; }
-        
-        .ui-header { 
-            padding: 20px 15px; border-bottom: 2px solid var(--g); 
-            background: linear-gradient(180deg, #000 0%, var(--panel) 100%);
-            box-shadow: 0 0 15px rgba(0, 255, 65, 0.2);
+// --- CALCULADORAS ---
+function calcH2O() {
+    const t = parseFloat(document.getElementById('h2o-temp').value);
+    const a = parseFloat(document.getElementById('h2o-act').value);
+    const total = (t * a).toFixed(1);
+    document.getElementById('h2o-res').innerText = total + " LITROS";
+}
+
+let dTime, dRun = false;
+function calcDist() {
+    const btn = document.getElementById('dist-btn');
+    if(!dRun){ dTime = Date.now(); dRun = true; btn.innerText = "ESPERANDO SONIDO..."; }
+    else {
+        let m = Math.round(((Date.now() - dTime)/1000) * 343);
+        document.getElementById('dist-res').innerText = m + " m";
+        dRun = false; btn.innerText = "FLASH-TO-BANG";
+    }
+}
+
+// --- QR & MODALS ---
+function generateQR() {
+    openMod('m-qr');
+    const mapsLink = `https://www.google.com/maps?q=${lastPos.lat},${lastPos.lon}`;
+    const url = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(mapsLink)}`;
+    document.getElementById('qr-root').innerHTML = `<img src="${url}" style="width:100%; border:10px solid white;"><p style="color:var(--a); font-size:10px; margin-top:10px;">SCAN FOR GOOGLE MAPS POS</p>`;
+}
+
+function openMod(id) {
+    document.getElementById(id).style.display = 'flex';
+    if(id === 'm-map') {
+        if(!map) {
+            map = L.map('map', {zoomControl: false}).setView([lastPos.lat, lastPos.lon], 15);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
         }
+        setTimeout(() => { map.invalidateSize(); forceGPS(); }, 400);
+    }
+}
+function closeMod() { document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); }
 
-        #gps-box { 
-            background: rgba(0,0,0,0.8); padding: 10px; border: 1px solid var(--g); 
-            text-align: center; font-size: 12px; color: var(--a);
-            text-shadow: 0 0 5px var(--a); border-radius: 4px;
-        }
-
-        .main-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 20px; flex-grow: 1; }
-        
-        .t-card { 
-            background: var(--panel); border: 1px solid #333; 
-            display: flex; flex-direction: column; align-items: center; justify-content: center; 
-            border-radius: 8px; backdrop-filter: blur(5px);
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
-            transition: all 0.2s;
-        }
-        .t-card:active { border-color: var(--g); background: rgba(0, 255, 65, 0.1); transform: scale(0.95); }
-        .t-card span { font-size: 11px; margin-top: 10px; font-weight: bold; letter-spacing: 1px; }
-
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 1000; flex-direction: column; animation: scanline 0.2s ease-out; }
-        .m-head { padding: 15px; border-bottom: 1px solid var(--g); display: flex; justify-content: space-between; align-items: center; background: #000; }
-        .m-content { flex-grow: 1; overflow-y: auto; padding: 20px; background: rgba(5,5,5,0.9); }
-
-        .btn-action { 
-            width: 100%; padding: 18px; background: #000; border: 1px solid var(--g); 
-            color: var(--g); margin-bottom: 12px; font-weight: bold; border-radius: 4px;
-            box-shadow: 0 0 10px rgba(0, 255, 65, 0.1);
-        }
-
-        /* Biblioteca Estilo Fichas */
-        .lib-card { background: #111; border: 1px solid #444; padding: 15px; margin-bottom: 15px; border-radius: 4px; border-left: 4px solid var(--a); }
-        .lib-card h3 { color: var(--a); font-size: 14px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
-        .ascii-img { font-size: 8px; line-height: 8px; color: #888; margin: 10px 0; white-space: pre; background: #000; padding: 10px; border-radius: 4px; }
-
-        #map { width: 100%; height: 100%; filter: contrast(1.2) brightness(0.8) hue-rotate(90deg); }
-
-        @keyframes scanline {
-            0% { transform: translateY(-100%); }
-            100% { transform: translateY(0); }
-        }
-    </style>
-</head>
-<body>
-
-<div id="strobe-layer"></div>
-
-<div id="app-shell">
-    <div class="ui-header">
-        <div class="status-bar" style="display:flex; justify-content: space-between; font-size: 10px; margin-bottom: 8px; opacity: 0.7;">
-            <span>NOMD OS v5.0 // ENCRYPTED</span><span id="timer">00:00</span>
-        </div>
-        <div id="gps-box" onclick="forceGPS()">COORDENADAS: ADQUIRIENDO...</div>
-    </div>
-
-    <div class="main-grid">
-        <div class="t-card" onclick="openMod('m-map')">🌐<span>SITREP MAP</span></div>
-        <div class="t-card" onclick="openMod('m-med')">⚕️<span>MED-TRIAGE</span></div>
-        <div class="t-card" onclick="openMod('m-com')">📡<span>BEACON</span></div>
-        <div class="t-card" onclick="openMod('m-lib')">📖<span>MANUALS</span></div>
-        <div class="t-card" onclick="openMod('m-tool')">🛠️<span>TOOLS</span></div>
-        <div class="t-card" onclick="generateQR()">🆔<span>EXTRACT QR</span></div>
-    </div>
-</div>
-
-<div id="m-lib" class="modal">
-    <div class="m-head"><span>INTEL LIBRARY</span><button onclick="closeMod()">[ VOLVER ]</button></div>
-    <div class="m-content">
-        <div class="lib-card">
-            <h3>💧 POTABILIZACIÓN AGUA</h3>
-            <p>1. Filtrado grueso (ropa/arena).<br>2. Ebullición (1 min fuerte).<br>3. SODIS: 6h sol en PET transparente.</p>
-        </div>
-        <div class="lib-card" style="border-left-color: var(--g);">
-            <h3>📻 COMUNICACIONES RADIO</h3>
-            <p><b>Canal 7-7 (PMR):</b> Emergencias montaña.<br><b>Sujeto - Lugar - Problema - Personas.</b></p>
-        </div>
-        <div class="lib-card" style="border-left-color: var(--r);">
-            <h3>🔥 FUEGO TÁCTICO</h3>
-            <p>Fuego "Dakota": Excavado en suelo para ocultar luz y concentrar calor. Ideal para zonas de alta visibilidad.</p>
-        </div>
-    </div>
-</div>
-
-<div id="m-med" class="modal">
-    <div class="m-head"><span>MEDICAL UNIT</span><button onclick="closeMod()">[ VOLVER ]</button></div>
-    <div class="m-content">
-        <div class="lib-card">
-            <h3>🩸 PROTOCOLO M.A.R.C.H</h3>
-            <p><b>M</b>assive Hemorrhage: Torniquete ya.<br><b>A</b>irway: Abrir vía aérea.<br><b>R</b>espiration: Sellar tórax.<br><b>C</b>irculation: Pulso y shock.<br><b>H</b>ypothermia: Tapar manta térmica.</p>
-            <div class="ascii-img">
-     [Tq]
-      ||  <-- 5-8cm arriba
-    __||__
-   |      | <-- Herida
-   |______|
-            </div>
-        </div>
-        <div id="victim-log"></div>
-    </div>
-</div>
-
-<div id="m-com" class="modal">
-    <div class="m-head"><span>SIGNAL BEACON</span><button onclick="closeMod()">[X]</button></div>
-    <div class="m-content">
-        <button class="btn-action" onclick="runStrobe('white')">STROBE BLANCO (MAX)</button>
-        <button class="btn-action" onclick="runStrobe('red')" style="color:red; border-color:red;">STROBE ROJO (WARM)</button>
-        <button class="btn-action" onclick="runMorse()">FLASH MORSE S.O.S</button>
-    </div>
-</div>
-
-<div id="m-tool" class="modal">
-    <div class="m-head"><span>HERRAMIENTAS</span><button onclick="closeMod()">[X]</button></div>
-    <div class="m-content">
-        <button class="btn-action" id="dist-btn" onclick="calcDist()">START FLASH-TO-BANG</button>
-        <div id="dist-res" style="text-align:center; font-size:32px; color:white; margin:20px 0;">0 m</div>
-    </div>
-</div>
-
-<div id="m-qr" class="modal">
-    <div class="m-head"><span>GOOGLE MAPS QR</span><button onclick="closeMod()">[X]</button></div>
-    <div class="m-content" style="text-align:center;">
-        <div id="qrcode" style="margin:20px auto; background:white; padding:10px; width:220px; height:220px;"></div>
-        <p id="qr-data" style="font-size:10px; color:var(--a); margin-top:10px;"></p>
-    </div>
-</div>
-
-<div id="m-map" class="modal"><div class="m-head"><span>TACTICAL MAP</span><button onclick="closeMod()">[X]</button></div><div id="map"></div></div>
-
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="app.js"></script>
-</body>
-</html>
+window.onload = () => {
+    setInterval(() => { document.getElementById('timer').innerText = new Date().toLocaleTimeString().slice(0,5); }, 1000);
+    forceGPS();
+};
