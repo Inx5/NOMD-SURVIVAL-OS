@@ -3,37 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>NOMD TACTICAL v7.3</title>
+    <title>NOMD TACTICAL v7.4</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         :root { --g: #00ff41; --r: #ff4141; --a: #ffb400; --bg: #050505; --panel: rgba(20, 20, 20, 0.95); }
         .night-mode { --g: #ff0000; --a: #ff0000; --bg: #1a0000; }
-        
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: 'Courier New', monospace; }
         body { background: var(--bg); color: var(--g); height: 100vh; overflow: hidden; }
-        
         #strobe-layer { position: fixed; top:0; left:0; width:100%; height:100%; z-index: 9999; pointer-events: none; opacity: 0; }
         #app-shell { position: relative; height: 100%; display: flex; flex-direction: column; z-index: 10; }
-        
         .ui-header { padding: 15px; border-bottom: 2px solid var(--g); background: #000; }
-        #gps-box { background: #000; padding: 8px; border: 1px solid var(--g); text-align: center; font-size: 11px; color: var(--a); border-radius: 4px; cursor: pointer; }
-        
+        #gps-box { background: #000; padding: 8px; border: 1px solid #333; text-align: center; font-size: 11px; color: #666; border-radius: 4px; }
         .main-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 15px; flex-grow: 1; }
         .t-card { background: var(--panel); border: 1px solid #333; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 8px; }
         .t-card span { font-size: 10px; margin-top: 8px; font-weight: bold; }
-
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 1000; flex-direction: column; }
         .m-head { padding: 12px; border-bottom: 1px solid var(--g); display: flex; justify-content: space-between; align-items: center; background: #000; }
         .m-content { flex-grow: 1; overflow-y: auto; padding: 15px; }
-
-        .btn-action { width: 100%; padding: 12px; background: #000; border: 1px solid var(--g); color: var(--g); margin-bottom: 10px; font-weight: bold; border-radius: 4px; font-size: 12px; }
+        .btn-action { width: 100%; padding: 12px; background: #000; border: 1px solid var(--g); color: var(--g); margin-bottom: 10px; font-weight: bold; border-radius: 4px; }
         .lib-card { background: #111; border: 1px solid #444; padding: 12px; margin-bottom: 12px; border-left: 4px solid var(--a); }
-        
         #map { width: 100%; height: 100%; background: #000; }
         input, select { background: #000; border: 1px solid var(--g); color: var(--g); padding: 12px; width: 100%; margin: 8px 0; font-size: 14px; }
-        
         .triage-btn { padding: 10px; margin: 5px 0; border: 1px solid #444; border-radius: 4px; font-size: 11px; text-align: left; background: #1a1a1a; color: #fff; width: 100%; }
-        h4 { color: var(--g); margin: 10px 0 5px 0; font-size: 12px; text-transform: uppercase; border-bottom: 1px solid #333; }
+        h4 { color: var(--g); margin: 10px 0 5px 0; font-size: 12px; border-bottom: 1px solid #333; }
     </style>
 </head>
 <body>
@@ -43,11 +35,11 @@
 <div id="app-shell">
     <div class="ui-header">
         <div style="display:flex; justify-content: space-between; font-size: 9px; margin-bottom: 5px;">
-            <span>NOMD v7.3 FRONTIER</span>
+            <span>NOMD v7.4 FRONT</span>
             <button onclick="toggleNight()" style="background:none; border:1px solid var(--r); color:var(--r); padding:2px 5px; font-size:8px;">MODO RED</button>
             <span id="timer">00:00</span>
         </div>
-        <div id="gps-box" onclick="checkGPSSettings()">ADQUIRIENDO POSICIÓN...</div>
+        <div id="gps-box">BUSCANDO SEÑAL GPS...</div>
     </div>
 
     <div class="main-grid">
@@ -68,36 +60,52 @@
         <button class="btn-action" onclick="runStrobe('white')">STROBE BLANCO</button>
         <input type="text" id="morse-input" placeholder="TEXTO A MORSE...">
         <button class="btn-action" onclick="runCustomMorse()">TRANSMITIR MORSE</button>
-        <div class="lib-card">
-            <h3>🔊 SILBATO INTERNACIONAL</h3>
-            <p style="font-size:11px;"><b>1 Pitido:</b> Ubicación.<br><b>2 Pitidos:</b> Mensaje recibido.<br><b>3 Pitidos:</b> SOS / EMERGENCIA.</p>
-        </div>
+        <div class="lib-card"><h3>🔊 SILBATO</h3><p style="font-size:11px;">1: Posición | 2: Recibido | 3: SOS.</p></div>
     </div>
 </div>
 
 <div id="m-tool" class="modal">
     <div class="m-head"><span>TOOLS & LOGS</span><button onclick="closeMod()">[X]</button></div>
     <div class="m-content">
+        <div class="lib-card" style="border-left-color: var(--g);">
+            <h3>⚡ DISTANCIA FLASH-TO-BANG</h3>
+            <button class="btn-action" id="dist-btn" onclick="calcDist()">INICIAR CAPTURA</button>
+            <p id="dist-res" style="text-align:center; font-size:20px;">0 m</p>
+        </div>
         <div class="lib-card">
-            <h3>💧 HIDRATACIÓN MÍNIMA</h3>
-            <input type="number" id="h2o-weight" placeholder="Peso (kg)" value="75">
+            <h3>💧 HIDRATACIÓN</h3>
+            <input type="number" id="h2o-weight" value="75" style="width:70px"> kg
             <select id="h2o-clima">
-                <option value="35">Templado (35ml/kg)</option>
-                <option value="55">Calor/Actividad (55ml/kg)</option>
-                <option value="45">Frío/Montaña (45ml/kg)</option>
+                <option value="35">Templado</option>
+                <option value="55">Calor/Actividad</option>
+                <option value="45">Frío/Montaña</option>
             </select>
             <button class="btn-action" onclick="calcH2O()">CALCULAR</button>
-            <p id="h2o-res" style="text-align:center; font-size:18px;">-- L</p>
+            <p id="h2o-res" style="text-align:center;">-- L</p>
         </div>
         <div class="lib-card"><h3>📍 HISTORIAL LOG</h3><div id="breadcrumb-list" style="font-size:10px;">Sin datos...</div></div>
     </div>
 </div>
 
 <div id="m-surv" class="modal">
-    <div class="m-head"><span>SURVIVAL</span><button onclick="closeMod()">[X]</button></div>
+    <div class="m-head"><span>SURVIVAL BIBLE</span><button onclick="closeMod()">[X]</button></div>
     <div class="m-content">
-        <div class="lib-card"><h3>⚠️ REGLA DEL 3</h3><p style="font-size:11px;">3 Min aire | 3 Horas refugio | 3 Días agua | 3 Semanas comida.</p></div>
-        <div class="lib-card"><h3>🔥 FUEGO</h3><p style="font-size:11px;">Estructura de nido. Yesca seca -> Ramas -> Leña.</p></div>
+        <div class="lib-card">
+            <h3>✨ ORIENTACIÓN NOCTURNA</h3>
+            <p style="font-size:11px;"><b>Norte:</b> Busca la Osa Mayor, proyecta las 2 estrellas del borde 5 veces su distancia para hallar la Polar.</p>
+        </div>
+        <div class="lib-card">
+            <h3>💧 OBTENCIÓN DE AGUA</h3>
+            <p style="font-size:11px;"><b>Pozo Solar:</b> Cava hoyo, pon recipiente en centro, cubre con plástico y una piedra pequeña en medio. La condensación caerá al vaso.</p>
+        </div>
+        <div class="lib-card">
+            <h3>🪢 NUDOS CRÍTICOS</h3>
+            <p style="font-size:11px;"><b>As de Guía:</b> Rescate/Lazo fijo.<br><b>Ballestrinque:</b> Amarre rápido.<br><b>Prusik:</b> Bloqueo/Ascenso.</p>
+        </div>
+        <div class="lib-card">
+            <h3>⛺ PRIORIDADES CAMPAMENTO</h3>
+            <p style="font-size:11px;">1. Seguridad (No ramas secas arriba).<br>2. Refugio (Aislamiento suelo).<br>3. Fuego (A sotavento).<br>4. Higiene (Lejos del agua).</p>
+        </div>
     </div>
 </div>
 
@@ -107,27 +115,16 @@
         <div id="triage-app" class="lib-card" style="border-left-color: var(--r);">
             <h3>🚑 TRIAGE START</h3>
             <div id="triage-step">
-                <p style="font-size:12px;">¿El paciente camina?</p>
+                <p>¿El paciente camina?</p>
                 <button class="triage-btn" onclick="triageResult('VERDE')">SÍ</button>
                 <button class="triage-btn" onclick="nextTriage(1)">NO</button>
             </div>
         </div>
         <div class="lib-card">
-            <h3>🩹 GUÍA TÉCNICA DE HERIDAS</h3>
-            <h4>🩸 Hemorragias</h4>
-            <p style="font-size:11px;">1. Presión directa.<br>2. Empaquetado de herida (si es posible).<br>3. Torniquete: 5cm sobre herida, apretar hasta que no haya pulso.</p>
-            
-            <h4>🕷️ Picaduras / Mordeduras</h4>
-            <p style="font-size:11px;"><b>Serpiente:</b> Inmovilizar miembro, NO succionar, NO hielo, NO torniquete (salvo coral/cobra).<br><b>Insecto:</b> Retirar aguijón por raspado.</p>
-            
-            <h4>❄️ Hipotermia</h4>
-            <p style="font-size:11px;">Retirar ropa húmeda. Envolver en seco. Calentar tronco (axilas/ingle). No frotar extremidades.</p>
-            
-            <h4>🔥 Golpe de Calor</h4>
-            <p style="font-size:11px;">Sombra. Hidratación con sales. Enfriar nuca, axilas e ingles con agua fría.</p>
-            
-            <h4>🫀 RCP (Básico)</h4>
-            <p style="font-size:11px;">100-120 compresiones/min. Profundidad 5cm. "Stayin' Alive" de los Bee Gees es el ritmo.</p>
+            <h3>🩹 MANUAL RÁPIDO</h3>
+            <h4>🩸 Hemorragias</h4><p style="font-size:10px;">Presión -> Empaquetado -> Torniquete.</p>
+            <h4>❄️ Hipotermia</h4><p style="font-size:10px;">Secar tronco. Calor gradual. No frotar.</p>
+            <h4>🫀 RCP</h4><p style="font-size:10px;">100 lpm. 5cm profundidad.</p>
         </div>
     </div>
 </div>
@@ -136,34 +133,26 @@
 <script>
     let map, userMarker, breadcrumbs = [];
     let lastPos = { lat: 0, lon: 0 };
-    let gpsActive = false;
+    let gpsOnce = false;
 
     function toggleNight() { document.body.classList.toggle('night-mode'); }
 
-    function checkGPSSettings() {
-        if(!gpsActive) {
-            alert("SISTEMA: GPS no detectado. \n1. Permite la ubicación en el navegador.\n2. Revisa Ajustes > Safari > Ubicación en tu iPhone.");
-        } else {
-            alert(`GPS ACTIVO\nLAT: ${lastPos.lat}\nLON: ${lastPos.lon}`);
-        }
-    }
-
     function forceGPS() {
         navigator.geolocation.getCurrentPosition(p => {
-            gpsActive = true;
             lastPos.lat = p.coords.latitude;
             lastPos.lon = p.coords.longitude;
-            document.getElementById('gps-box').innerText = `LAT: ${lastPos.lat.toFixed(4)} | LON: ${lastPos.lon.toFixed(4)}`;
-            document.getElementById('gps-box').style.borderColor = "var(--g)";
+            const box = document.getElementById('gps-box');
+            box.innerText = `POS: ${lastPos.lat.toFixed(4)} | ${lastPos.lon.toFixed(4)}`;
+            box.style.color = "var(--g)"; box.style.borderColor = "var(--g)";
+            
             if(map) {
-                map.setView([lastPos.lat, lastPos.lon], 16);
+                if(!gpsOnce) { map.setView([lastPos.lat, lastPos.lon], 16); gpsOnce = true; }
                 if(userMarker) map.removeLayer(userMarker);
-                userMarker = L.circleMarker([lastPos.lat, lastPos.lon], {color: '#00ff41', radius: 9, fillOpacity:1}).addTo(map);
+                userMarker = L.circleMarker([lastPos.lat, lastPos.lon], {color: '#00ff41', radius: 10, fillOpacity:1}).addTo(map);
             }
         }, () => {
-            gpsActive = false;
             document.getElementById('gps-box').innerText = "ERROR GPS: REVISA PERMISOS";
-            document.getElementById('gps-box').style.borderColor = "var(--r)";
+            document.getElementById('gps-box').style.color = "var(--r)";
         }, {enableHighAccuracy:true});
     }
 
@@ -172,32 +161,43 @@
         if(id === 'm-map') {
             if(!map) {
                 map = L.map('map', {zoomControl: false}).setView([0,0], 2);
-                // SERVIDOR DE SATÉLITE ESRI (Muy fiable y a color real)
                 L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}').addTo(map);
             }
-            setTimeout(() => { map.invalidateSize(); forceGPS(); if(!gpsActive) checkGPSSettings(); }, 400);
+            setTimeout(() => { map.invalidateSize(); forceGPS(); }, 400);
         }
+    }
+
+    // FLASH TO BANG
+    let dTime, dRun = false;
+    function calcDist() {
+        const b = document.getElementById('dist-btn');
+        if(!dRun){ dTime = Date.now(); dRun = true; b.innerText = "PARAR AL OÍR..."; }
+        else {
+            let m = Math.round(((Date.now() - dTime)/1000) * 343);
+            document.getElementById('dist-res').innerText = m + " m";
+            dRun = false; b.innerText = "INICIAR CAPTURA";
+        }
+    }
+
+    function saveBreadcrumb() {
+        if(lastPos.lat === 0) return;
+        const time = new Date().toLocaleTimeString().slice(0,5);
+        breadcrumbs.unshift(`[${time}] ${lastPos.lat.toFixed(4)}, ${lastPos.lon.toFixed(4)}`);
+        document.getElementById('breadcrumb-list').innerHTML = breadcrumbs.slice(0,5).join('<br>');
+        if(map) L.circleMarker([lastPos.lat, lastPos.lon], {color: '#0066ff', radius: 6}).addTo(map);
     }
 
     function triageResult(res) {
         let color = res === 'ROJO' ? '#ff4141' : (res === 'AMARILLO' ? '#ffb400' : (res === 'VERDE' ? '#00ff41' : '#555'));
-        document.getElementById('triage-step').innerHTML = `<div style="background:${color}; color:#000; padding:15px; font-weight:bold; text-align:center;">${res}</div><button class="btn-action" onclick="location.reload()" style="margin-top:10px;">REINICIAR</button>`;
+        document.getElementById('triage-step').innerHTML = `<div style="background:${color}; color:#000; padding:10px; font-weight:bold; text-align:center;">${res}</div><button class="btn-action" onclick="location.reload()" style="margin-top:10px;">REINICIAR</button>`;
     }
 
     function nextTriage(step) {
         const div = document.getElementById('triage-step');
         if(step===1) div.innerHTML = `<p>¿Respira?</p><button class="triage-btn" onclick="nextTriage(2)">SÍ</button><button class="triage-btn" onclick="triageResult('NEGRO')">NO</button>`;
         else if(step===2) div.innerHTML = `<p>Frecuencia > 30/min?</p><button class="triage-btn" onclick="triageResult('ROJO')">SÍ</button><button class="triage-btn" onclick="nextTriage(3)">NO</button>`;
-        else if(step===3) div.innerHTML = `<p>¿Pulso radial presente?</p><button class="triage-btn" onclick="nextTriage(4)">SÍ</button><button class="triage-btn" onclick="triageResult('ROJO')">NO</button>`;
+        else if(step===3) div.innerHTML = `<p>¿Pulso presente?</p><button class="triage-btn" onclick="nextTriage(4)">SÍ</button><button class="triage-btn" onclick="triageResult('ROJO')">NO</button>`;
         else if(step===4) div.innerHTML = `<p>¿Obedece órdenes?</p><button class="triage-btn" onclick="triageResult('AMARILLO')">SÍ</button><button class="triage-btn" onclick="triageResult('ROJO')">NO</button>`;
-    }
-
-    function saveBreadcrumb() {
-        if(!gpsActive) return checkGPSSettings();
-        const time = new Date().toLocaleTimeString().slice(0,5);
-        breadcrumbs.unshift(`[${time}] ${lastPos.lat.toFixed(4)}, ${lastPos.lon.toFixed(4)}`);
-        document.getElementById('breadcrumb-list').innerHTML = breadcrumbs.slice(0,5).join('<br>');
-        if(map) L.circleMarker([lastPos.lat, lastPos.lon], {color: '#0066ff', radius: 6}).addTo(map);
     }
 
     function calcH2O() {
@@ -207,13 +207,11 @@
     }
 
     function closeMod() { document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); }
-    
     window.onload = () => {
         setInterval(() => { document.getElementById('timer').innerText = new Date().toLocaleTimeString().slice(0,5); }, 1000);
         forceGPS();
     };
-    
-    // El resto de funciones (Morse, Strobe) se mantienen igual...
+
     let strobeInt, strobeActive = false;
     function runStrobe(c) {
         const l = document.getElementById('strobe-layer');
