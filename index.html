@@ -20,7 +20,6 @@
         .m-head { padding: 15px; border-bottom: 1px solid var(--g); display: flex; justify-content: space-between; align-items: center; background: #000; }
         .m-content { flex-grow: 1; overflow-y: auto; padding: 15px; }
         .btn-action { width: 100%; padding: 15px; background: #000; border: 1px solid var(--g); color: var(--g); margin-bottom: 10px; font-weight: bold; border-radius: 4px; }
-        .lib-card { background: #111; border: 1px solid #444; padding: 12px; margin-bottom: 12px; border-left: 4px solid var(--a); }
         #map { width: 100%; height: 100%; filter: contrast(1.2) brightness(0.8) hue-rotate(90deg); }
         input, select { background: #000; border: 1px solid var(--g); color: var(--g); padding: 10px; width: 100%; margin: 10px 0; }
     </style>
@@ -45,50 +44,14 @@
     </div>
 
     <div id="m-map" class="modal"><div class="m-head"><span>MAPA</span><button onclick="closeMod()">[X]</button></div><div id="map"></div></div>
-    
-    <div id="m-com" class="modal">
-        <div class="m-head"><span>SEÑALES & MORSE</span><button onclick="closeMod()">[X]</button></div>
-        <div class="m-content">
-            <button class="btn-action" onclick="runStrobe('white')">STROBE BLANCO</button>
-            <button class="btn-action" onclick="runStrobe('red')" style="color:red; border-color:red;">STROBE ROJO</button>
-            <input type="text" id="morse-input" placeholder="MENSAJE A TRANSMITIR...">
-            <button class="btn-action" onclick="runCustomMorse()">ENVIAR MORSE LUZ</button>
-        </div>
-    </div>
-
-    <div id="m-tool" class="modal">
-        <div class="m-head"><span>TOOLS</span><button onclick="closeMod()">[X]</button></div>
-        <div class="m-content">
-            <div class="lib-card">
-                <h3>💧 AGUA (L/DÍA)</h3>
-                <select id="h2o-temp"><option value="2.5">Calor</option><option value="1.5">Templado</option></select>
-                <select id="h2o-act"><option value="2">Marcha</option><option value="1">Reposo</option></select>
-                <button class="btn-action" onclick="calcH2O()">CALCULAR</button>
-                <p id="h2o-res" style="text-align:center; font-size:20px;">-- L</p>
-            </div>
-            <button class="btn-action" id="dist-btn" onclick="calcDist()">DISTANCIA SONIDO</button>
-            <p id="dist-res" style="text-align:center;">0 m</p>
-        </div>
-    </div>
-
-    <div id="m-med" class="modal">
-        <div class="m-head"><span>MEDICAL</span><button onclick="closeMod()">[X]</button></div>
-        <div class="m-content">
-            <div class="lib-card"><h3>🩸 M.A.R.C.H</h3><p>M: Massive Hemorrhage<br>A: Airway<br>R: Respiration<br>C: Circulation<br>H: Hypothermia</p></div>
-        </div>
-    </div>
-
-    <div id="m-lib" class="modal">
-        <div class="m-head"><span>MANUALS</span><button onclick="closeMod()">[X]</button></div>
-        <div class="m-content">
-            <div class="lib-card"><h3>✈️ TIERRA-AIRE</h3><p>V: Ayuda<br>X: Medico Urgente<br>N: No / Y: Si</p></div>
-        </div>
-    </div>
-
-    <div id="m-qr" class="modal">
-        <div class="m-head"><span>QR POSICIÓN</span><button onclick="closeMod()">[X]</button></div>
-        <div id="qr-root" style="text-align:center; padding:20px;"></div>
-    </div>
+    <div id="m-com" class="modal"><div class="m-head"><span>SEÑALES</span><button onclick="closeMod()">[X]</button></div><div class="m-content">
+        <button class="btn-action" onclick="runStrobe('white')">STROBE BLANCO</button>
+        <input type="text" id="morse-input" placeholder="MENSAJE..."><button class="btn-action" onclick="runCustomMorse()">ENVIAR MORSE</button>
+    </div></div>
+    <div id="m-tool" class="modal"><div class="m-head"><span>TOOLS</span><button onclick="closeMod()">[X]</button></div><div class="m-content">
+        <button class="btn-action" onclick="calcH2O()">CALCULAR AGUA</button><p id="h2o-res">--</p>
+    </div></div>
+    <div id="m-qr" class="modal"><div class="m-head"><span>QR POSICIÓN</span><button onclick="closeMod()">[X]</button></div><div id="qr-root" style="text-align:center;"></div></div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="app.js"></script>
