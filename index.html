@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>NOMD TACTICAL v10.0</title>
+    <title>NOMD TACTICAL v10.1</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
@@ -21,7 +21,7 @@
         .t-card span { font-size: 10px; margin-top: 6px; font-weight: bold; color: #fff; text-transform: uppercase; }
 
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 1000; flex-direction: column; }
-        .m-head { padding: 15px; border-bottom: 1px solid var(--g); display: flex; justify-content: space-between; background: #000; font-weight: bold; }
+        .m-head { padding: 15px; border-bottom: 1px solid var(--g); display: flex; justify-content: space-between; background: #000; }
         .m-content { flex-grow: 1; overflow-y: auto; padding: 20px; }
 
         .diag-box { width: 100%; height: 120px; border: 1px solid var(--g); margin: 10px 0; background: #000; display: flex; align-items: center; justify-content: center; padding: 10px; }
@@ -33,6 +33,7 @@
         #map { width: 100%; height: 100%; background: #000; }
         .map-tools { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 999; display: flex; gap: 5px; width: 95%; }
         .btn-m { flex: 1; padding: 12px 5px; font-size: 10px; background: rgba(0,0,0,0.9); border: 1px solid var(--g); color: var(--g); font-weight: bold; }
+        textarea { width: 100%; background: #000; color: var(--g); border: 1px solid var(--g); padding: 12px; }
     </style>
 </head>
 <body>
@@ -41,7 +42,7 @@
 
 <header class="ui-header">
     <div style="display:flex; justify-content: space-between;">
-        <span>NOMD TACTICAL v10.0</span>
+        <span>NOMD TACTICAL v10.1</span>
         <span id="timer" style="color:var(--a)">00:00:00</span>
     </div>
     <div id="gps-box">LOCALIZANDO SATÉLITES...</div>
@@ -58,46 +59,44 @@
     <div class="t-card" onclick="openMod('m-com')">📻<span>COMMS</span></div>
 </main>
 
+<div id="m-surv" class="modal">
+    <div class="m-head">SURVIVAL_BIBLIE<button onclick="closeMod()">[X]</button></div>
+    <div class="m-content">
+        <div class="lib-card">
+            <h4>REFUGIO LEAN-TO</h4>
+            <div class="diag-box"><svg viewBox="0 0 100 60"><line x1="10" y1="50" x2="90" y2="50" /><line x1="20" y1="50" x2="70" y2="10" /><line x1="70" y1="10" x2="70" y2="50" stroke-dasharray="2" /></svg></div>
+            <p>Estructura a 45° contra el viento.</p>
+        </div>
+        <div class="lib-card">
+            <h4>DESTILACIÓN SOLAR</h4>
+            <div class="diag-box"><svg viewBox="0 0 100 60"><path d="M10,20 Q50,60 90,20" /><rect x="45" y="40" width="10" height="8" /><circle cx="50" cy="25" r="2" fill="var(--g)" /></svg></div>
+            <p>Hoyo + Plástico = Agua pura.</p>
+        </div>
+        <div class="lib-card" style="border-left-color:var(--r)">
+            <h4>FUEGO (ARCO)</h4>
+            <div class="diag-box"><svg viewBox="0 0 100 60"><path d="M20,20 Q50,5 80,20" /><line x1="50" y1="10" x2="50" y2="50" /><rect x="30" y="50" width="40" height="5" /></svg></div>
+            <p>Fricción constante hasta obtener brasa.</p>
+        </div>
+        <div class="lib-card" style="border-left-color:var(--b)">
+            <h4>ESPEJO DE SEÑALES</h4>
+            <div class="diag-box"><svg viewBox="0 0 100 60"><rect x="35" y="15" width="30" height="30" /><circle cx="50" cy="30" r="3" /><line x1="50" y1="30" x2="80" y2="5" stroke-dasharray="4" /></svg></div>
+            <p>Refleja luz solar a aeronaves.</p>
+        </div>
+        <div class="lib-card" style="border-left-color:var(--g)">
+            <h4>RELOJ DE SOL</h4>
+            <div class="diag-box"><svg viewBox="0 0 100 60"><circle cx="50" cy="50" r="40" stroke-dasharray="4" /><line x1="50" y1="50" x2="50" y2="15" /><path d="M50,15 L45,25 L55,25 Z" fill="var(--g)" /></svg></div>
+            <p>Halla el eje Este-Oeste mediante sombras.</p>
+        </div>
+    </div>
+</div>
+
 <div id="m-med" class="modal">
     <div class="m-head">MEDICAL_PROTOCOLS<button onclick="closeMod()">[X]</button></div>
     <div class="m-content">
-        <div id="triage-box" class="lib-card" style="border-left-color:var(--r)">
-            <p>¿PUEDE CAMINAR?</p>
-            <button class="btn-action" onclick="tRes('VERDE')">SÍ</button>
-            <button class="btn-action" onclick="nextT(1)">NO</button>
-        </div>
-
-        <div class="lib-card">
-            <h4>1. TORNIQUETE TÁCTICO</h4>
-            <div class="diag-box">
-                <svg viewBox="0 0 100 60"><rect x="20" y="25" width="60" height="10" rx="2" /><line x1="50" y1="15" x2="50" y2="45" stroke-width="4"/><path d="M40,15 L60,15" /></svg>
-            </div>
-            <p>5-8cm sobre la herida. No colocar sobre articulaciones.</p>
-        </div>
-
-        <div class="lib-card">
-            <h4>2. SELLO DE PECHO (NEUMOTÓRAX)</h4>
-            <div class="diag-box">
-                <svg viewBox="0 0 100 60"><path d="M30,10 L70,10 L70,50 L30,50 Z" /><circle cx="50" cy="30" r="5" /><line x1="50" y1="30" x2="50" y2="10" /><line x1="50" y1="30" x2="70" y2="30" /></svg>
-            </div>
-            <p>Ocluir herida penetrante. Dejar un lado sin sellar para salida de aire (válvula).</p>
-        </div>
-
-        <div class="lib-card">
-            <h4>3. VENDAJE EN OCHO</h4>
-            <div class="diag-box">
-                <svg viewBox="0 0 100 60"><path d="M30,20 Q50,5 70,20 Q90,35 70,50 Q50,65 30,50 Q10,35 30,20" /></svg>
-            </div>
-            <p>Ideal para tobillos y muñecas. Mantiene compresión permitiendo mínima movilidad.</p>
-        </div>
-
-        <div class="lib-card">
-            <h4>4. ENTABLILLADO (FRACTURA)</h4>
-            <div class="diag-box">
-                <svg viewBox="0 0 100 60"><line x1="10" y1="20" x2="90" y2="20" /><line x1="10" y1="40" x2="90" y2="40" /><path d="M30,20 L30,40 M50,20 L50,40 M70,20 L70,40" /></svg>
-            </div>
-            <p>Inmovilizar articulación superior e inferior a la rotura.</p>
-        </div>
+        <div class="lib-card"><h4>1. TORNIQUETE</h4><div class="diag-box"><svg viewBox="0 0 100 60"><rect x="20" y="25" width="60" height="10" rx="2" /><line x1="50" y1="15" x2="50" y2="45" stroke-width="4"/></svg></div></div>
+        <div class="lib-card"><h4>2. SELLO PECHO</h4><div class="diag-box"><svg viewBox="0 0 100 60"><path d="M30,10 L70,10 L70,50 L30,50 Z" /><circle cx="50" cy="30" r="5" /></svg></div></div>
+        <div class="lib-card"><h4>3. VENDAJE EN 8</h4><div class="diag-box"><svg viewBox="0 0 100 60"><path d="M30,20 Q50,5 70,20 Q90,35 70,50 Q50,65 30,50 Q10,35 30,20" /></svg></div></div>
+        <div class="lib-card"><h4>4. ENTABLILLADO</h4><div class="diag-box"><svg viewBox="0 0 100 60"><line x1="10" y1="20" x2="90" y2="20" /><line x1="10" y1="40" x2="90" y2="40" /><path d="M50,20 L50,40" /></svg></div></div>
     </div>
 </div>
 
@@ -112,31 +111,20 @@
     </div>
 </div>
 
-<div id="m-surv" class="modal">
-    <div class="m-head">SURVIVAL_BIBLIE<button onclick="closeMod()">[X]</button></div>
-    <div class="m-content">
-        <div class="lib-card"><h4>FUEGO (ARCO)</h4><div class="diag-box"><svg viewBox="0 0 100 60"><path d="M20,20 Q50,5 80,20" /><line x1="50" y1="10" x2="50" y2="50" /><rect x="30" y="50" width="40" height="5" /></svg></div></div>
-        <div class="lib-card"><h4>AGUA (SOLAR)</h4><div class="diag-box"><svg viewBox="0 0 100 60"><path d="M10,20 Q50,60 90,20" /><circle cx="50" cy="25" r="2" fill="var(--g)" /></svg></div></div>
-        <div class="lib-card"><h4>REFUGIO</h4><div class="diag-box"><svg viewBox="0 0 100 60"><line x1="10" y1="50" x2="90" y2="50" /><line x1="20" y1="50" x2="70" y2="10" /></svg></div></div>
-    </div>
-</div>
-
 <div id="m-nvg" class="modal"><div class="m-head">NVG<button onclick="stopNVG()">[OFF]</button></div><video id="nvg-video" style="width:100%; height:100%; object-fit:cover; filter: sepia(1) hue-rotate(60deg) brightness(1.6) contrast(2);" autoplay playsinline></video></div>
 <div id="m-intel" class="modal"><div class="m-head">INTEL<button onclick="closeMod()">[X]</button></div><div class="m-content"><div class="lib-card"><h3>TIEMPO</h3><p>18°C | 12 KM/H NE | HUM: 65%</p></div></div></div>
 <div id="m-knots" class="modal"><div class="m-head">NUDOS<button onclick="closeMod()">[X]</button></div><div class="m-content"><div class="lib-card"><h4>AS DE GUÍA</h4><div class="diag-box"><svg viewBox="0 0 100 60"><path d="M50,10 C30,10 30,40 50,40 C70,40 70,10 50,10 M50,40 L50,55" /></svg></div></div></div></div>
 <div id="m-com" class="modal"><div class="m-head">COMMS<button onclick="closeMod()">[X]</button></div><div class="m-content"><button class="btn-action" onclick="sendEmergency()">SMS SOS</button><button class="btn-action" onclick="runStrobe('white')">STROBE</button><input type="text" id="morse-input" placeholder="TEXTO..."><button class="btn-action" onclick="runCustomMorse()">MORSE LUZ</button></div></div>
-<div id="m-note" class="modal"><div class="m-head">NOTAS<button onclick="closeMod()">[X]</button></div><div class="m-content"><textarea id="note-area" rows="10" style="width:100%; background:#000; color:var(--g); border:1px solid var(--g);"></textarea></div></div>
+<div id="m-note" class="modal"><div class="m-head">NOTAS<button onclick="closeMod()">[X]</button></div><div class="m-content"><textarea id="note-area" rows="10"></textarea></div></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
     let map, userMarker, stream, lastPos = {lat: 0, lon: 0}, mType = 'hostile', markers = [];
-
     setInterval(() => { document.getElementById('timer').innerText = new Date().toLocaleTimeString(); }, 1000);
 
     function initGPS() {
         navigator.geolocation.watchPosition(p => {
-            lastPos.lat = p.coords.latitude; 
-            lastPos.lon = p.coords.longitude;
+            lastPos.lat = p.coords.latitude; lastPos.lon = p.coords.longitude;
             document.getElementById('gps-box').innerText = `POS: ${lastPos.lat.toFixed(5)} | ${lastPos.lon.toFixed(5)}`;
             updateUserMarker();
         }, null, {enableHighAccuracy: true});
@@ -145,25 +133,14 @@
     function updateUserMarker() {
         if(map && lastPos.lat !== 0) {
             if(!userMarker) {
-                userMarker = L.circleMarker([lastPos.lat, lastPos.lon], {
-                    color: '#00ff41', fillColor: '#00ff41', fillOpacity: 1, radius: 9, weight: 3
-                }).addTo(map);
+                userMarker = L.circleMarker([lastPos.lat, lastPos.lon], {color: '#00ff41', fillColor: '#00ff41', fillOpacity: 1, radius: 9, weight: 3}).addTo(map);
                 userMarker.bindTooltip("OPERADOR", {permanent: true, direction: 'top'}).openTooltip();
                 map.setView([lastPos.lat, lastPos.lon], 16);
-            } else {
-                userMarker.setLatLng([lastPos.lat, lastPos.lon]);
-            }
+            } else { userMarker.setLatLng([lastPos.lat, lastPos.lon]); }
         }
     }
 
-    function centerMap() {
-        if(lastPos.lat !== 0 && map) {
-            map.setView([lastPos.lat, lastPos.lon], 18);
-            updateUserMarker(); // Forzar dibujo
-        } else {
-            alert("ESPERANDO SEÑAL GPS...");
-        }
-    }
+    function centerMap() { if(lastPos.lat !== 0 && map) { map.setView([lastPos.lat, lastPos.lon], 18); updateUserMarker(); } }
 
     function openMod(id) {
         document.getElementById(id).style.display = 'flex';
@@ -184,28 +161,19 @@
     function clearMap() { markers.forEach(m => map.removeLayer(m)); markers = []; }
     function closeMod() { document.querySelectorAll('.modal').forEach(m => m.style.display='none'); }
 
-    // TRIAGE
-    function nextT(s) {
-        const b = document.getElementById('triage-box');
-        if(s===1) b.innerHTML = `<p>¿RESPIRA?</p><button class="btn-action" onclick="nextT(2)">SÍ</button><button class="btn-action" onclick="tRes('NEGRO')">NO</button>`;
-        else if(s===2) b.innerHTML = `<p>PULSO RADIAL:</p><button class="btn-action" onclick="tRes('AMARILLO')">FUERTE</button><button class="btn-action" onclick="tRes('ROJO')">DÉBIL</button>`;
-    }
-    function tRes(r) { document.getElementById('triage-box').innerHTML = `<h3>RESULTADO: ${r}</h3><button class="btn-action" onclick="location.reload()">RESET</button>`; }
-
-    // NVG
     async function startNVG() {
         try { stream = await navigator.mediaDevices.getUserMedia({video: {facingMode: "environment"}}); document.getElementById('nvg-video').srcObject = stream; }
         catch(e) { alert("ERROR CAM"); }
     }
     function stopNVG() { if(stream) stream.getTracks().forEach(t => t.stop()); closeMod(); }
 
-    // STROBE & MORSE
     let strobeInt, strobeActive = false;
     function runStrobe(c) {
         const l = document.getElementById('strobe-layer');
         if(strobeActive){ clearInterval(strobeInt); strobeActive = false; l.style.opacity = "0"; }
         else { strobeActive = true; l.style.background = c; strobeInt = setInterval(()=>l.style.opacity = l.style.opacity==="1"?"0":"1", 50); }
     }
+
     async function runCustomMorse() {
         const text = document.getElementById('morse-input').value.toUpperCase();
         const l = document.getElementById('strobe-layer'); l.style.background = "white";
@@ -217,7 +185,6 @@
         }
     }
     function sendEmergency() { window.location.href = `sms:?body=EMERGENCIA. Coords: ${lastPos.lat},${lastPos.lon}`; }
-
     window.onload = initGPS;
 </script>
 </body>
