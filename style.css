@@ -1,0 +1,54 @@
+/* --- NOMD SURVIVAL OS | TACTICAL INTERFACE --- */
+
+:root {
+    --bg-dark: #050505;
+    --chasis-color: #1a1b1a;
+    --military-green: #00ff41;
+    --warning-amber: #ffb400;
+    --danger-red: #ff3e3e;
+    --border-metal: #343434;
+    --shadow-black: rgba(0, 0, 0, 0.9);
+}
+
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    background-color: #000;
+    color: #e0e0e0;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* CHASIS EXTERIOR - EL CUERPO DEL DISPOSITIVO */
+.container {
+    width: 92vw;
+    max-width: 420px;
+    height: 90vh;
+    background: linear-gradient(145deg, #222, #0d0d0d);
+    border: 4px solid #111;
+    border-radius: 40px;
+    padding: 18px;
+    position: relative;
+    box-shadow: 0 30px 60px var(--shadow-black), inset 0 2px 5px rgba(255,255,255,0.1);
+}
+
+/* TORNILLOS TÁCTICOS (4 ESQUINAS) */
+.container::before, .container::after {
+    content: "✖";
+    position: absolute;
+    font-size: 10px;
+    color: #333;
+    text-shadow: 1px 1px 0px rgba(255,255,255,0.05);
+}
+.container::before { top: 15px; left: 20px; } /* Superior Izquierdo */
+/* (Para simplificar, solo usaremos pseudo-elementos para los tornillos superiores) */
+
+/* PANTALLA

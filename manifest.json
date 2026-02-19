@@ -1,0 +1,16 @@
+{
+  "name": "NOMD Survival OS",
+  "short_name": "NOMD",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#00ff41",
+  "description": "Sistema Operativo Táctico de Supervivencia",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2583/2583155.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
