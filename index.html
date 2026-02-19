@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>NOMD TACTICAL v9.8</title>
+    <title>NOMD TACTICAL v9.9</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
@@ -13,7 +13,7 @@
         
         #strobe-layer { position: fixed; top:0; left:0; width:100%; height:100%; z-index: 9999; pointer-events: none; opacity: 0; }
         .ui-header { padding: 12px; border-bottom: 2px solid var(--g); background: #000; z-index: 100; }
-        #gps-box { background: rgba(0,40,0,0.5); padding: 8px; border: 1px solid var(--g); text-align: center; font-size: 12px; margin-top: 8px; box-shadow: 0 0 10px rgba(0,255,65,0.2); }
+        #gps-box { background: rgba(0,40,0,0.5); padding: 8px; border: 1px solid var(--g); text-align: center; font-size: 12px; margin-top: 8px; }
         
         .main-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 15px; overflow-y: auto; flex-grow: 1; }
         .t-card { background: rgba(15,20,15,0.9); border: 1px solid #333; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 8px; min-height: 90px; }
@@ -30,9 +30,9 @@
         .btn-action { width: 100%; padding: 15px; background: #000; border: 1px solid var(--g); color: var(--g); margin-bottom: 10px; font-weight: bold; }
         .lib-card { background: #111; border: 1px solid #444; padding: 12px; margin-bottom: 15px; border-left: 4px solid var(--a); }
         
-        #map { width: 100%; height: 100%; background: #000; z-index: 1; }
+        #map { width: 100%; height: 100%; background: #000; }
         .map-tools { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 999; display: flex; gap: 5px; width: 95%; }
-        .btn-m { flex: 1; padding: 12px 5px; font-size: 10px; background: rgba(0,0,0,0.8); border: 1px solid var(--g); color: var(--g); font-weight: bold; backdrop-filter: blur(5px); }
+        .btn-m { flex: 1; padding: 12px 5px; font-size: 10px; background: rgba(0,0,0,0.8); border: 1px solid var(--g); color: var(--g); font-weight: bold; }
         textarea { width: 100%; background: #000; color: var(--g); border: 1px solid var(--g); padding: 12px; }
     </style>
 </head>
@@ -42,10 +42,10 @@
 
 <header class="ui-header">
     <div style="display:flex; justify-content: space-between; font-size: 11px;">
-        <span>NOMD v9.8_GEO_FIX</span>
+        <span>NOMD v9.9_SURVIVAL_MAX</span>
         <span id="timer" style="color:var(--a)">00:00:00</span>
     </div>
-    <div id="gps-box">ESTABLECIENDO CONEXIÓN GPS...</div>
+    <div id="gps-box">BUSCANDO SEÑAL GPS...</div>
 </header>
 
 <main class="main-grid">
@@ -59,6 +59,68 @@
     <div class="t-card" onclick="openMod('m-com')">📻<span>COMMS / MORSE</span></div>
 </main>
 
+<div id="m-surv" class="modal">
+    <div class="m-head">SURVIVAL_BIBLIE<button onclick="closeMod()">[X]</button></div>
+    <div class="m-content">
+        <div class="lib-card">
+            <h4>REFUGIO LEAN-TO</h4>
+            <div class="diag-box">
+                <svg viewBox="0 0 100 60">
+                    <line x1="10" y1="50" x2="90" y2="50" />
+                    <line x1="20" y1="50" x2="70" y2="10" />
+                    <line x1="70" y1="10" x2="70" y2="50" stroke-dasharray="2" />
+                </svg>
+            </div>
+            <p>Estructura a 45° contra el viento. Cubrir con lona o follaje denso.</p>
+        </div>
+
+        <div class="lib-card">
+            <h4>DESTILACIÓN SOLAR</h4>
+            <div class="diag-box">
+                <svg viewBox="0 0 100 60">
+                    <path d="M10,20 Q50,60 90,20" />
+                    <rect x="45" y="40" width="10" height="8" />
+                    <circle cx="50" cy="25" r="2" fill="var(--g)" />
+                </svg>
+            </div>
+            <p>Hoyo + Recipiente + Plástico. La condensación genera agua potable.</p>
+        </div>
+
+        <div class="lib-card" style="border-left-color:var(--r)">
+            <h4>FUEGO POR FRICCIÓN (ARCO)</h4>
+            <div class="diag-box">
+                <svg viewBox="0 0 100 60">
+                    <path d="M20,20 Q50,5 80,20" /> <line x1="50" y1="10" x2="50" y2="50" /> <rect x="30" y="50" width="40" height="5" /> </svg>
+            </div>
+            <p>Arco, eje de madera dura y base blanda. Crear serrín caliente hasta la brasa.</p>
+        </div>
+
+        <div class="lib-card" style="border-left-color:var(--b)">
+            <h4>ESPEJO DE SEÑALES</h4>
+            <div class="diag-box">
+                <svg viewBox="0 0 100 60">
+                    <rect x="35" y="15" width="30" height="30" />
+                    <circle cx="50" cy="30" r="3" />
+                    <line x1="50" y1="30" x2="80" y2="5" stroke-dasharray="4" />
+                </svg>
+            </div>
+            <p>Mira por el agujero central. Refleja el sol hacia el objetivo (avión/barco).</p>
+        </div>
+
+        <div class="lib-card" style="border-left-color:var(--g)">
+            <h4>RELOJ DE SOL (NORTE)</h4>
+            <div class="diag-box">
+                <svg viewBox="0 0 100 60">
+                    <circle cx="50" cy="50" r="40" stroke-dasharray="4" />
+                    <line x1="50" y1="50" x2="50" y2="15" />
+                    <path d="M50,15 L45,25 L55,25 Z" fill="var(--g)" />
+                </svg>
+            </div>
+            <p>Clava un palo. Marca la sombra. 15 min después marca la nueva. La línea une Oeste-Este.</p>
+        </div>
+    </div>
+</div>
+
 <div id="m-map" class="modal">
     <div class="m-head">STRIKE_MAP<button onclick="closeMod()">[X]</button></div>
     <div id="map"></div>
@@ -71,9 +133,8 @@
 </div>
 
 <div id="m-nvg" class="modal"><div class="m-head">NVG_VISOR<button onclick="stopNVG()">[OFF]</button></div><video id="nvg-video" style="width:100%; height:100%; object-fit:cover; filter: sepia(1) hue-rotate(60deg) brightness(1.6) contrast(2);" autoplay playsinline></video></div>
-<div id="m-intel" class="modal"><div class="m-head">METEO_INTEL<button onclick="closeMod()">[X]</button></div><div class="m-content"><div class="lib-card"><h3>ESTADO</h3><p>TEMP: 18°C | VIENTO: 12 KM/H | HUM: 65%</p></div><div class="lib-card" style="border-left-color:var(--b)"><h3>ASTROS</h3><p>SOL: 07:22 - 18:48 | LUNA: 🌘</p></div></div></div>
+<div id="m-intel" class="modal"><div class="m-head">METEO_INTEL<button onclick="closeMod()">[X]</button></div><div class="m-content"><div class="lib-card"><h3>ESTADO</h3><p>TEMP: 18°C | VIENTO: 12 KM/H NE | HUM: 65%</p></div><div class="lib-card" style="border-left-color:var(--b)"><h3>ASTROS</h3><p>SOL: 07:22 - 18:48 | LUNA: 🌘</p></div></div></div>
 <div id="m-med" class="modal"><div class="m-head">MED_UNIT<button onclick="closeMod()">[X]</button></div><div class="m-content"><div id="triage-box" class="lib-card"><p>¿EL PACIENTE PUEDE CAMINAR?</p><button class="btn-action" onclick="tRes('VERDE')">SÍ</button><button class="btn-action" onclick="nextT(1)">NO</button></div><div class="lib-card"><h4>TORNIQUETE</h4><div class="diag-box"><svg viewBox="0 0 100 60"><rect x="20" y="25" width="60" height="10" rx="2" /><line x1="50" y1="15" x2="50" y2="45" stroke-width="4" /><path d="M40,15 Q50,5 60,15" /></svg></div><p>5-8cm sobre la herida.</p></div></div></div>
-<div id="m-surv" class="modal"><div class="m-head">SURVIVAL<button onclick="closeMod()">[X]</button></div><div class="m-content"><div class="lib-card"><h4>REFUGIO LEAN-TO</h4><div class="diag-box"><svg viewBox="0 0 100 60"><line x1="10" y1="50" x2="90" y2="50" /><line x1="20" y1="50" x2="70" y2="10" /><line x1="70" y1="10" x2="70" y2="50" stroke-dasharray="2" /></svg></div><p>Estructura a 45°.</p></div></div></div>
 <div id="m-knots" class="modal"><div class="m-head">KNOTS<button onclick="closeMod()">[X]</button></div><div class="m-content"><div class="lib-card"><h4>AS DE GUÍA</h4><div class="diag-box"><svg viewBox="0 0 100 60"><path d="M50,10 C30,10 30,40 50,40 C70,40 70,10 50,10 M50,40 L50,55" /><circle cx="50" cy="25" r="5" stroke-dasharray="2" /></svg></div><p>Nudo de rescate.</p></div></div></div>
 <div id="m-com" class="modal"><div class="m-head">COMMS<button onclick="closeMod()">[X]</button></div><div class="m-content"><button class="btn-action" onclick="sendEmergency()">ENVIAR COORD SMS</button><button class="btn-action" onclick="runStrobe('white')">STROBE LIGHT</button><input type="text" id="morse-input" placeholder="TEXTO A MORSE..."><button class="btn-action" onclick="runCustomMorse()">EMITIR LUZ</button></div></div>
 <div id="m-note" class="modal"><div class="m-head">NOTES<button onclick="closeMod()">[X]</button></div><div class="m-content"><textarea id="note-area" rows="10"></textarea></div></div>
@@ -84,51 +145,18 @@
 
     setInterval(() => { document.getElementById('timer').innerText = new Date().toLocaleTimeString(); }, 1000);
 
-    // GPS MEJORADO
     function initGPS() {
-        if (!navigator.geolocation) {
-            document.getElementById('gps-box').innerText = "ERROR: GPS NO SOPORTADO";
-            return;
-        }
-
-        const geoOptions = {
-            enableHighAccuracy: true,
-            timeout: 10000,
-            maximumAge: 0
-        };
-
         navigator.geolocation.watchPosition(p => {
-            lastPos.lat = p.coords.latitude; 
-            lastPos.lon = p.coords.longitude;
-            
+            lastPos.lat = p.coords.latitude; lastPos.lon = p.coords.longitude;
             document.getElementById('gps-box').innerText = `LAT: ${lastPos.lat.toFixed(5)} | LON: ${lastPos.lon.toFixed(5)}`;
-            
-            // Si el mapa ya existe, actualizamos o creamos el punto verde
-            if(map) {
-                if(!userMarker) {
-                    userMarker = L.circleMarker([lastPos.lat, lastPos.lon], {
-                        color: '#00ff41', 
-                        fillColor: '#00ff41',
-                        fillOpacity: 1,
-                        radius: 8,
-                        weight: 2
-                    }).addTo(map);
-                    userMarker.bindPopup("OPERADOR").openPopup();
-                    map.setView([lastPos.lat, lastPos.lon], 16);
-                } else {
-                    userMarker.setLatLng([lastPos.lat, lastPos.lon]);
-                }
-            }
-        }, err => {
-            document.getElementById('gps-box').innerText = "ERROR GPS: PERMISO DENEGADO";
-        }, geoOptions);
+            if(map && !userMarker) {
+                userMarker = L.circleMarker([lastPos.lat, lastPos.lon], {color: '#00ff41', fillColor: '#00ff41', fillOpacity: 1, radius: 8}).addTo(map);
+                map.setView([lastPos.lat, lastPos.lon], 16);
+            } else if(userMarker) { userMarker.setLatLng([lastPos.lat, lastPos.lon]); }
+        }, null, {enableHighAccuracy: true});
     }
 
-    function centerMap() {
-        if(lastPos.lat !== 0 && map) {
-            map.setView([lastPos.lat, lastPos.lon], 17);
-        }
-    }
+    function centerMap() { if(lastPos.lat !== 0 && map) map.setView([lastPos.lat, lastPos.lon], 17); }
 
     function openMod(id) {
         document.getElementById(id).style.display = 'flex';
@@ -136,16 +164,10 @@
             if(!map) {
                 map = L.map('map', {zoomControl: false}).setView([lastPos.lat || 0, lastPos.lon || 0], (lastPos.lat ? 16 : 2));
                 L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}').addTo(map);
-                
-                // Si ya teníamos posición pero el marcador no se creó por no estar el mapa listo
-                if(lastPos.lat !== 0 && !userMarker) {
-                    userMarker = L.circleMarker([lastPos.lat, lastPos.lon], {color: '#00ff41', fillColor: '#00ff41', fillOpacity: 1, radius: 8}).addTo(map);
-                }
-
+                if(lastPos.lat !== 0 && !userMarker) userMarker = L.circleMarker([lastPos.lat, lastPos.lon], {color: '#00ff41', fillColor: '#00ff41', fillOpacity: 1, radius: 8}).addTo(map);
                 map.on('click', e => {
                     let c = {hostile: '#ff4141', friend: '#00d4ff', poi: '#ffb400'}[mType];
-                    let m = L.circleMarker(e.latlng, {color: c, radius: 10, fillOpacity: 0.8}).addTo(map);
-                    markers.push(m);
+                    markers.push(L.circleMarker(e.latlng, {color: c, radius: 10, fillOpacity: 0.8}).addTo(map));
                 });
             }
             setTimeout(() => map.invalidateSize(), 300);
@@ -162,7 +184,6 @@
     }
     function stopNVG() { if(stream) stream.getTracks().forEach(t => t.stop()); closeMod(); }
 
-    // STROBE & MORSE
     let strobeInt, strobeActive = false;
     function runStrobe(c) {
         const l = document.getElementById('strobe-layer');
