@@ -1,4 +1,4 @@
-const CACHE = 'nomd-v2.5';
+const CACHE = 'nomd-v3.0';
 self.addEventListener('install', e => {
     e.waitUntil(caches.open(CACHE).then(c => c.addAll(['./', './index.html', './app.js', './manifest.json'])));
 });
