@@ -1,19 +1,119 @@
 let map, userMarker;
 let lastPos = { lat: 0, lon: 0 };
 let strobeInt, strobeActive = false;
-
 function forceGPS() {
-    navigator.geolocation.getCurrentPosition(p => {
-        lastPos.lat = p.coords.latitude.toFixed(6);
-        lastPos.lon = p.coords.longitude.toFixed(6);
-        document.getElementById('gps-box').innerText = `COORD: ${lastPos.lat} , ${lastPos.lon}`;
-        if(map) {
-            map.setView([lastPos.lat, lastPos.lon], 16);
-            if(userMarker) map.removeLayer(userMarker);
-            userMarker = L.circleMarker([lastPos.lat, lastPos.lon], {color: '#00ff41', radius: 10}).addTo(map);
+        // Forzamos al iPhone a usar el sensor GPS de alta precisión
+        navigator.geolocation.getCurrentPosition(p => {
+            lastPos.lat = p.coords.latitude;
+            lastPos.lon = p.coords.longitude;
+            const box = document.getElementById('gps-box');
+            box.innerText = `POS: ${lastPos.lat.toFixed(4)} | ${lastPos.lon.toFixed(4)}`;
+            box.style.color = "var(--g)"; 
+            box.style.borderColor = "var(--g)";
+            
+            if(map) {
+                if(!gpsOnce) { map.setView([lastPos.lat, lastPos.lon], 16); gpsOnce = true; }
+                if(userMarker) map.removeLayer(userMarker);
+                userMarker = L.circleMarker([lastPos.lat, lastPos.lon], {
+                    color: '#00ff41', 
+                    radius: 10, 
+                    fillOpacity:1,
+                    weight: 3
+                }).addTo(map);
+            }
+        }, (error) => {
+            let msg = "ERROR GPS";
+            if(error.code === 1) msg = "BLOQUEADO POR SAFARI";
+            if(error.code === 2) msg = "BUSCANDO SEÑAL...";
+            document.getElementById('gps-box').innerText = msg;
+            document.getElementById('gps-box').style.color = "var(--r)";
+        }, {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0
+        });
+    }
+
+    function openMod(id) {
+        document.getElementById(id).style.display = 'flex';
+        if(id === 'm-map') {
+            if(!map) {
+                map = L.map('map', {zoomControl: false}).setView([0,0], 2);
+                L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}').addTo(map);
+            }
+            setTimeout(() => { map.invalidateSize(); forceGPS(); }, 400);
         }
-    }, null, {enableHighAccuracy:true});
-}
+    }
+
+    let dTime, dRun = false;
+    function calcDist() {
+        const b = document.getElementById('dist-btn');
+        if(!dRun){ dTime = Date.now(); dRun = true; b.innerText = "PARAR AL OÍR..."; }
+        else {
+            let m = Math.round(((Date.now() - dTime)/1000) * 343);
+            document.getElementById('dist-res').innerText = m + " m";
+            dRun = false; b.innerText = "INICIAR CAPTURA";
+        }
+    }
+
+    function saveBreadcrumb() {
+        if(lastPos.lat === 0) return;
+        const time = new Date().toLocaleTimeString().slice(0,5);
+        breadcrumbs.unshift(`[${time}] ${lastPos.lat.toFixed(4)}, ${lastPos.lon.toFixed(4)}`);
+        document.getElementById('breadcrumb-list').innerHTML = breadcrumbs.slice(0,5).join('<br>');
+        if(map) L.circleMarker([lastPos.lat, lastPos.lon], {color: '#0066ff', radius: 6}).addTo(map);
+    }
+
+    function triageResult(res) {
+        let color = res === 'ROJO' ? '#ff4141' : (res === 'AMARILLO' ? '#ffb400' : (res === 'VERDE' ? '#00ff41' : '#555'));
+        document.getElementById('triage-step').innerHTML = `<div style="background:${color}; color:#000; padding:10px; font-weight:bold; text-align:center;">${res}</div><button class="btn-action" onclick="location.reload()" style="margin-top:10px;">REINICIAR</button>`;
+    }
+
+    function nextTriage(step) {
+        const div = document.getElementById('triage-step');
+        if(step===1) div.innerHTML = `<p>¿Respira?</p><button class="triage-btn" onclick="nextTriage(2)">SÍ</button><button class="triage-btn" onclick="triageResult('NEGRO')">NO</button>`;
+        else if(step===2) div.innerHTML = `<p>Frecuencia > 30/min?</p><button class="triage-btn" onclick="triageResult('ROJO')">SÍ</button><button class="triage-btn" onclick="nextTriage(3)">NO</button>`;
+        else if(step===3) div.innerHTML = `<p>¿Pulso presente?</p><button class="triage-btn" onclick="nextTriage(4)">SÍ</button><button class="triage-btn" onclick="triageResult('ROJO')">NO</button>`;
+        else if(step===4) div.innerHTML = `<p>¿Obedece órdenes?</p><button class="triage-btn" onclick="nextTriage(5)">SÍ</button><button class="triage-btn" onclick="triageResult('ROJO')">NO</button>`;
+    }
+
+    function calcH2O() {
+        const p = parseFloat(document.getElementById('h2o-weight').value);
+        const f = parseFloat(document.getElementById('h2o-clima').value);
+        document.getElementById('h2o-res').innerText = ((p * f) / 1000).toFixed(2) + " L/DÍA";
+    }
+
+    function closeMod() { document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); }
+    
+    window.onload = () => {
+        setInterval(() => { document.getElementById('timer').innerText = new Date().toLocaleTimeString().slice(0,5); }, 1000);
+        forceGPS();
+    };
+
+    let strobeInt, strobeActive = false;
+    function runStrobe(c) {
+        const l = document.getElementById('strobe-layer');
+        if(strobeActive){ clearInterval(strobeInt); strobeActive = false; l.style.opacity = "0"; }
+        else { strobeActive = true; l.style.background = c; strobeInt = setInterval(()=>l.style.opacity = l.style.opacity==="1"?"0":"1", 60); }
+    }
+    async function runCustomMorse() {
+        const text = document.getElementById('morse-input').value.toUpperCase();
+        const l = document.getElementById('strobe-layer'); l.style.background = "white"; strobeActive = true;
+        const M = {'A': '.-', 'B': '-...', 'C': '-.-.', 'D': '-..', 'E': '.', 'F': '..-.', 'G': '--.', 'H': '....', 'I': '..', 'J': '.---', 'K': '-.-', 'L': '.-..', 'M': '--', 'N': '-.', 'O': '---', 'P': '.--.', 'Q': '--.-', 'R': '.-.', 'S': '...', 'T': '-', 'U': '..-', 'V': '...-', 'W': '.--', 'X': '-..-', 'Y': '-.--', 'Z': '--..', ' ': '/'};
+        for(let char of text){
+            let code = M[char]; if(!code) continue;
+            for(let s of code){
+                l.style.opacity = "1"; await new Promise(r=>setTimeout(r, s==='.'?200:600));
+                l.style.opacity = "0"; await new Promise(r=>setTimeout(r, 200));
+            }
+            await new Promise(r=>setTimeout(r, 400));
+        }
+        strobeActive = false;
+    }
+</script>
+</body>
+</html>
+
 
 function runStrobe(color) {
     const layer = document.getElementById('strobe-layer');
@@ -91,4 +191,5 @@ function closeMod() { document.querySelectorAll('.modal').forEach(m => m.style.d
 window.onload = () => {
     setInterval(() => { document.getElementById('timer').innerText = new Date().toLocaleTimeString().slice(0,5); }, 1000);
     forceGPS();
+
 };
